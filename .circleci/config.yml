@@ -1,0 +1,52 @@
+# .circleci/config.yml
+# ====================
+#
+# Copying
+# -------
+#
+# Copyright (c) 2020 none authors and contributors.
+#
+# This file is part of the *none* project.
+#
+# None is a free software project. You can redistribute it and/or
+# modify it following the terms of the MIT License.
+#
+# This software project is distributed *as is*, WITHOUT WARRANTY OF ANY
+# KIND; including but not limited to the WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE and NONINFRINGEMENT.
+#
+# You should have received a copy of the MIT License along with
+# *none*. If not, see <http://opensource.org/licenses/MIT>.
+#
+version: 2.1
+orbs:
+    poetry: frameio/poetry@0.15.0
+    python: circleci/python@0.3.2
+
+jobs:
+    tests:
+        parameters:
+            version:
+                description: "The Python environment version to be tested."
+                default: "3.6"
+                type: string
+        executor:
+            name: python/default
+            tag: <<parameters.version>>
+        steps:
+            - checkout
+            - run: rm --force .python-version
+            - poetry/install
+            - poetry/shell:
+                  args: pytest
+
+workflows:
+    main:
+        jobs:
+            - tests:
+                  matrix:
+                      parameters:
+                          version:
+                              - "3.6"
+                              - "3.7"
+                              - "3.8"
