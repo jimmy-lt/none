@@ -190,3 +190,5 @@ month of signature on 2 digits (i.e 01 for January until 12 for December) and
 
 Contributors
 ^^^^^^^^^^^^
+
+- Jimmy Thrasibule <dev@jimmy.lt>, 2020/08/25
