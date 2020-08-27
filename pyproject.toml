@@ -74,6 +74,7 @@ include = [
 
 [tool.poetry.dependencies]
 python = "^3.6"
+sphinx = {version = "^3.2", extras = ["docs"]}
 
 [tool.poetry.dev-dependencies]
 hypothesis = "*"
