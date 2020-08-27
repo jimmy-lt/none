@@ -140,6 +140,12 @@ dist/
 *.egg
 
 
+# Documentation
+# ^^^^^^^^^^^^^
+
+docs/_build/
+
+
 # Installer logs
 # ^^^^^^^^^^^^^^
 
