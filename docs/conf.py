@@ -120,7 +120,6 @@ html_sidebars = {
 autodoc_default_options = {
     "member-order": "bysource",
     "members": True,
-    "private-members": True,
     "show-inheritance": True,
     "special-members": True,
     "undoc-members": True,
