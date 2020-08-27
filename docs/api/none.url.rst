@@ -1,5 +1,5 @@
-.. api/none.rst
-.. ============
+.. api/none.url.rst
+.. ================
 ..
 .. Copying
 .. -------
@@ -18,17 +18,7 @@
 .. You should have received a copy of the MIT License along with
 .. *none*. If not, see <http://opensource.org/licenses/MIT>.
 
-none
-====
+none.url
+========
 
-.. automodule:: none
-
-
-Subpackages
------------
-
-.. toctree::
-  :maxdepth: 2
-
-  none.text
-  none.url
+.. automodule:: none.url
