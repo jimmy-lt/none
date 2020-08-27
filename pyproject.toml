@@ -25,7 +25,7 @@ build-backend = "poetry.masonry.api"
 
 [tool.isort]
 py_version = "36"
-known_third_party = ["pytest"]
+known_third_party = ["pytest", "rfc3986"]
 atomic = true
 combine_as_imports = true
 combine_star = true
@@ -75,6 +75,7 @@ include = [
 [tool.poetry.dependencies]
 python = "^3.6"
 sphinx = {version = "^3.2", extras = ["docs"]}
+rfc3986 = {version = "^1.4", extras = ["url"]}
 
 [tool.poetry.dev-dependencies]
 hypothesis = "*"
