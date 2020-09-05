@@ -1,5 +1,5 @@
-.. api/none.rst
-.. ============
+.. api/none.callable.rst
+.. =====================
 ..
 .. Copying
 .. -------
@@ -18,19 +18,7 @@
 .. You should have received a copy of the MIT License along with
 .. *none*. If not, see <http://opensource.org/licenses/MIT>.
 
-none
-====
+none.callable
+=============
 
-.. automodule:: none
-
-
-Subpackages
------------
-
-.. toctree::
-  :maxdepth: 2
-
-  none.callable
-  none.collection
-  none.text
-  none.url
+.. automodule:: none.callable
