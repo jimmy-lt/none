@@ -1,5 +1,5 @@
-# none/__init__.py
-# ================
+# none/task/__init__.py
+# =====================
 #
 # Copying
 # -------
@@ -18,8 +18,4 @@
 # You should have received a copy of the MIT License along with
 # *none*. If not, see <http://opensource.org/licenses/MIT>.
 #
-import none.url
-import none.task
-import none.text
-import none.callable
-import none.collection
+import none.task.abc

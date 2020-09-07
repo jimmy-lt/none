@@ -1,0 +1,40 @@
+/* docs/_lib/graphs/none.task.abc.Task.run.dot
+ * ===========================================
+ *
+ * Copying
+ * -------
+ *
+ * Copyright (c) 2020 none authors and contributors.
+ *
+ * This file is part of the *none* project.
+ *
+ * None is a free software project. You can redistribute it and/or
+ * modify it following the terms of the MIT License.
+ *
+ * This software project is distributed *as is*, WITHOUT WARRANTY OF ANY
+ * KIND; including but not limited to the WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE and NONINFRINGEMENT.
+ *
+ * You should have received a copy of the MIT License along with
+ * *none*. If not, see <http://opensource.org/licenses/MIT>.
+ */
+digraph "none.task.abc.Task.run:flow" {
+    start [shape=Mdiamond]
+    end [shape=Msquare]
+
+    on_call [label="on_call()"]
+    main [label="Main Loop"]
+    on_done [label="on_done()"]
+    on_success [label="on_success()"]
+    on_failure [label="on_failure()"]
+    on_exit [label="on_exit()"]
+
+    start -> on_call
+    on_call -> main
+    main -> on_done
+    on_done -> on_success
+    on_done -> on_failure
+    on_success -> on_exit
+    on_failure -> on_exit
+    on_exit -> end
+}
