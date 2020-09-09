@@ -44,9 +44,32 @@ def EOFTask():
 
 
 @pytest.fixture
+def EOFArgumentTask(EOFTask):
+    """Generate an argument task class failing with ``EOFError``."""
+
+    class EOFArgumentTask(EOFTask, none.task.abc.ArgumentTask):
+        def __init__(self, with_version: bool = False, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.with_version = with_version
+
+        @property
+        def version(self):
+            if self.with_version:
+                return "0.0.0"
+
+    return EOFArgumentTask
+
+
+@pytest.fixture
 def eoftask(EOFTask):
     """Generate an instance of ``EOFTask``."""
     return EOFTask()
+
+
+@pytest.fixture
+def eofargumenttask(EOFArgumentTask):
+    """Generate an instance of ``EOFArgumentTask``."""
+    return EOFArgumentTask()
 
 
 class TestTask(object):
@@ -231,3 +254,89 @@ class TestTask(object):
 
         t = T()
         t.run()
+
+
+class TestArgumentTask(object):
+    """Test cases for :class:`none.task.abc.ArgumentTask`."""
+
+    def test_parse_args_no_version_when_empty(self, eofargumenttask):
+        """The version option should not be generated when the task's version
+        is null.
+
+        """
+        with pytest.raises(SystemExit):
+            eofargumenttask.parse_args(["--version"])
+
+    @pytest.mark.parametrize(
+        "with_version,stream,expected",
+        [
+            (True, "out", "eofargumenttask 0.0.0"),
+            (False, "err", "eofargumenttask: error: unrecognized arguments: --version"),
+        ],
+    )
+    def test_parse_args_no_version_when_empty(
+        self, capsys, eofargumenttask, with_version, stream, expected
+    ):
+        """The version option should not be generated when the task's version
+        is null.
+
+        """
+        eofargumenttask.with_version = with_version
+        with pytest.raises(SystemExit):
+            eofargumenttask.parse_args(["--version"])
+
+        captured = capsys.readouterr()
+        assert getattr(captured, stream).splitlines()[-1] == expected
+
+    def test_parse_args_to_opts(self, EOFArgumentTask):
+        """Make sure ``parse_args`` produces the expected options."""
+
+        class T(EOFArgumentTask):
+            @property
+            def arguments(self):
+                return (
+                    (("-o", "--opt"), {"action": "store_true"}),
+                    (("positional",), {}),
+                )
+
+        t = T()
+        t.parse_args(["--opt", "REQUIRED"])
+
+        assert not hasattr(t.opts, "INVALID")
+        assert hasattr(t.opts, "opt")
+        assert hasattr(t.opts, "positional")
+        assert t.opts.opt is True
+        assert t.opts.positional == "REQUIRED"
+
+    def test_parse_args_should_call_on_argparse(self, EOFArgumentTask):
+        """Parsing command line arguments must trigger the ``on_argparse()``
+        event.
+
+        """
+        stack = []
+
+        class T(EOFArgumentTask):
+            def on_argparse(self):
+                stack.append("on_argparse")
+
+        t = T()
+        t.parse_args([])
+
+        assert stack == ["on_argparse"]
+
+    def test_on_argparse_can_be_caught(self, EOFArgumentTask):
+        """Parsing command line arguments must trigger the ``on_argparse()``
+        event.
+
+        """
+        stack = []
+
+        class T(EOFArgumentTask):
+            @none.callable.catch("on_argparse")
+            def catch_argparse(self):
+                stack.append("catch_argparse")
+
+        t = T()
+        t.parse_args([])
+
+        assert stack == ["catch_argparse"]
