@@ -78,6 +78,25 @@ def EOFArgumentTask(EOFTask):
 
 
 @pytest.fixture
+def AsyncEOFArgumentTask(AsyncEOFTask):
+    """Generate an argument asynchronous task class failing with ``EOFError``.
+
+    """
+
+    class AsyncEOFArgumentTask(AsyncEOFTask, none.task.abc.AsyncArgumentTask):
+        def __init__(self, with_version: bool = False, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.with_version = with_version
+
+        @property
+        def version(self):
+            if self.with_version:
+                return "0.0.0"
+
+    return AsyncEOFArgumentTask
+
+
+@pytest.fixture
 def SequenceBatch():
     """Generate a batch task which count up to provided number."""
 
@@ -136,6 +155,12 @@ def asynceoftask(AsyncEOFTask):
 def eofargumenttask(EOFArgumentTask):
     """Generate an instance of ``EOFArgumentTask``."""
     return EOFArgumentTask()
+
+
+@pytest.fixture
+def asynceofargumenttask(AsyncEOFArgumentTask):
+    """Generate an instance of ``AsyncEOFArgumentTask``."""
+    return AsyncEOFArgumentTask()
 
 
 @pytest.fixture
@@ -599,6 +624,100 @@ class TestArgumentTask(object):
 
         t = T()
         t.parse_args([])
+
+        assert stack == ["catch_argparse"]
+
+
+class TestAsyncArgumentTask(object):
+    """Test cases for :class:`none.task.abc.AsyncArgumentTask`."""
+
+    @pytest.mark.asyncio
+    async def test_parse_args_no_version_when_empty(self, asynceofargumenttask):
+        """The version option should not be generated when the task's version
+        is null.
+
+        """
+        with pytest.raises(SystemExit):
+            await asynceofargumenttask.parse_args(["--version"])
+
+    # fmt: off
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "with_version,stream,expected",
+        [
+            (True, "out", "asynceofargumenttask 0.0.0"),
+            (False, "err", "asynceofargumenttask: error: unrecognized arguments: --version"),
+        ],
+    )
+    async def test_parse_args_no_version_when_empty(
+        self, capsys, asynceofargumenttask, with_version, stream, expected
+    ):
+        """The version option should not be generated when the task's version
+        is null.
+
+        """
+        asynceofargumenttask.with_version = with_version
+        with pytest.raises(SystemExit):
+            await asynceofargumenttask.parse_args(["--version"])
+
+        captured = capsys.readouterr()
+        assert getattr(captured, stream).splitlines()[-1] == expected
+    # fmt: on
+
+    @pytest.mark.asyncio
+    async def test_parse_args_to_opts(self, AsyncEOFArgumentTask):
+        """Make sure ``parse_args`` produces the expected options."""
+
+        class T(AsyncEOFArgumentTask):
+            @property
+            async def arguments(self):
+                for a, kw in (
+                    (("-o", "--opt"), {"action": "store_true"}),
+                    (("positional",), {}),
+                ):
+                    yield a, kw
+
+        t = T()
+        await t.parse_args(["--opt", "REQUIRED"])
+
+        assert not hasattr(t.opts, "INVALID")
+        assert hasattr(t.opts, "opt")
+        assert hasattr(t.opts, "positional")
+        assert t.opts.opt is True
+        assert t.opts.positional == "REQUIRED"
+
+    @pytest.mark.asyncio
+    async def test_parse_args_should_call_on_argparse(self, AsyncEOFArgumentTask):
+        """Parsing command line arguments must trigger the ``on_argparse()``
+        event.
+
+        """
+        stack = []
+
+        class T(AsyncEOFArgumentTask):
+            async def on_argparse(self):
+                stack.append("on_argparse")
+
+        t = T()
+        await t.parse_args([])
+
+        assert stack == ["on_argparse"]
+
+    @pytest.mark.asyncio
+    async def test_on_argparse_can_be_caught(self, AsyncEOFArgumentTask):
+        """Parsing command line arguments must trigger the ``on_argparse()``
+        event.
+
+        """
+        stack = []
+
+        class T(AsyncEOFArgumentTask):
+            @none.callable.asynccatch("on_argparse")
+            async def catch_argparse(self):
+                stack.append("catch_argparse")
+
+        t = T()
+        await t.parse_args([])
 
         assert stack == ["catch_argparse"]
 
