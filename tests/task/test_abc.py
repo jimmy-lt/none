@@ -44,6 +44,23 @@ def EOFTask():
 
 
 @pytest.fixture
+def AsyncEOFTask():
+    """Generate an asynchronous task class failing with ``EOFError``."""
+
+    class AsyncEOFTask(none.task.abc.AsyncTask):
+        """An asynchronous task raising ``EOFError``.
+
+        This task fails by default.
+
+        """
+
+        async def __call__(self, *args, **kwargs):
+            raise EOFError()
+
+    return AsyncEOFTask
+
+
+@pytest.fixture
 def EOFArgumentTask(EOFTask):
     """Generate an argument task class failing with ``EOFError``."""
 
@@ -107,6 +124,12 @@ def SuperBatch():
 def eoftask(EOFTask):
     """Generate an instance of ``EOFTask``."""
     return EOFTask()
+
+
+@pytest.fixture
+def asynceoftask(AsyncEOFTask):
+    """Generate an instance of ``AsyncEOFTask``."""
+    return AsyncEOFTask()
 
 
 @pytest.fixture
@@ -303,6 +326,195 @@ class TestTask(object):
 
         t = T()
         t.run()
+
+
+class TestAsyncTask(object):
+    """Test cases for :class:`none.task.abc.AsyncTask`."""
+
+    @pytest.mark.asyncio
+    async def test_run_default_should_raises(self, asynceoftask):
+        """By default a task will raise on failure."""
+        with pytest.raises(EOFError):
+            await asynceoftask.run()
+
+    @pytest.mark.asyncio
+    async def test_run_raise_exc_to_false_should_not_raise(self, asynceoftask):
+        """Setting ``raise_exc`` to ``False`` should not raise the exception."""
+        asynceoftask.raise_exc = False
+        await asynceoftask.run()
+
+    @pytest.mark.asyncio
+    async def test_run_ignore_exc_are_raised(self, asynceoftask):
+        """An ignored exception is be raised when ``raise_exc`` is ``True``."""
+        asynceoftask.raise_exc = True
+        asynceoftask.ignore_exc = (EOFError,)
+        with pytest.raises(EOFError):
+            await asynceoftask.run()
+
+    @pytest.mark.asyncio
+    async def test_run_ignore_exc_can_be_inhibited(self, asynceoftask):
+        """An ignored exception can be inhibited when ``raise_exc`` is
+        ``False``.
+
+        """
+        asynceoftask.raise_exc = False
+        asynceoftask.ignore_exc = (EOFError,)
+        await asynceoftask.run()
+
+    @pytest.mark.asyncio
+    async def test_run_events_should_be_called_in_order(self, AsyncEOFTask):
+        """Events should be called following the execution flow."""
+        stack = []
+
+        class T(AsyncEOFTask):
+            async def on_call(self):
+                stack.append("on_call")
+
+            async def on_done(self):
+                stack.append("on_done")
+
+            async def on_exit(self):
+                stack.append("on_exit")
+
+        t = T()
+        with pytest.raises(EOFError):
+            await t.run()
+
+        assert stack == ["on_call", "on_done", "on_exit"]
+
+    @pytest.mark.asyncio
+    async def test_run_caught_events_should_be_called_in_order(self, AsyncEOFTask):
+        """Events can be caught nd hanging functions should be called following
+        the execution flow.
+
+        """
+        stack = []
+
+        class T(AsyncEOFTask):
+            @none.callable.asynccatch("on_call")
+            async def catch_call(self):
+                stack.append("on_call")
+
+            @none.callable.asynccatch("on_done")
+            async def catch_done(self):
+                stack.append("on_done")
+
+            @none.callable.asynccatch("on_exit")
+            async def catch_exit(self):
+                stack.append("on_exit")
+
+        t = T()
+        with pytest.raises(EOFError):
+            await t.run()
+
+        assert stack == ["on_call", "on_done", "on_exit"]
+
+    @pytest.mark.asyncio
+    async def test_run_on_failure_should_be_called_on_exception(self, AsyncEOFTask):
+        """In case of error, the ``on_failure()`` event should be called with
+        the raised exception.
+
+        """
+        stack = []
+
+        # AsyncEOFTask raises ``EOFError`` when called.
+        class T(AsyncEOFTask):
+            async def on_failure(self, *exc):
+                for e in exc:
+                    stack.append(e)
+
+        t = T()
+        with pytest.raises(EOFError):
+            await t.run()
+
+        for a, b in zip_longest(stack, [EOFError]):
+            assert isinstance(a, b)
+
+    @pytest.mark.asyncio
+    async def test_run_all_exception_raised_should_be_passed_to_on_failure_in_order(
+        self, AsyncEOFTask
+    ):
+        """When the ``on_done()`` event is raising an exception it should also
+        be passed along with the original exception.
+
+        """
+        stack = []
+
+        # AsyncEOFTask raises ``EOFError`` when called.
+        class T(AsyncEOFTask):
+            async def on_done(self):
+                raise InterruptedError
+
+            async def on_failure(self, *exc):
+                self.raise_exc = False
+                for e in exc:
+                    stack.append(e)
+
+        t = T()
+        await t.run()
+
+        for a, b in zip_longest(stack, [EOFError, InterruptedError]):
+            assert isinstance(a, b)
+
+    @pytest.mark.asyncio
+    async def test_run_last_exception_is_raised(self, AsyncEOFTask):
+        """In case, multiple exception are raised during the task execution,
+        only the last one will be raised upwards.
+
+        """
+        # AsyncEOFTask raises ``EOFError`` when called.
+        stack = []
+
+        class T(AsyncEOFTask):
+            async def on_done(self):
+                raise InterruptedError
+
+            async def on_failure(self, *exc):
+                for e in exc:
+                    stack.append(e)
+
+        t = T()
+        with pytest.raises(InterruptedError) as exc:
+            await t.run()
+
+        assert isinstance(stack[-1], exc.type)
+
+    @pytest.mark.asyncio
+    async def test_run_ignored_exception_should_be_passed_to_on_success(
+        self, AsyncEOFTask
+    ):
+        """Ignored raised exceptions should be passed to the ``on_success()``
+        event.
+
+        """
+        stack = []
+
+        # AsyncEOFTask raises ``EOFError`` when called.
+        class T(AsyncEOFTask):
+            async def on_success(self, *exc):
+                for e in exc:
+                    stack.append(e)
+
+        t = T(ignore_exc=(EOFError,))
+        with pytest.raises(EOFError):
+            await t.run()
+
+        for a, b in zip_longest(stack, [EOFError]):
+            assert isinstance(a, b)
+
+    @pytest.mark.asyncio
+    async def test_on_failure_can_inhibit_error_propagation(self, AsyncEOFTask):
+        """The ``on_failure()`` event can prevent the exception to propagate
+        towards upper layers.
+
+        """
+        # AsyncEOFTask raises ``EOFError`` when called.
+        class T(AsyncEOFTask):
+            async def on_failure(self, *exc):
+                self.raise_exc = False
+
+        t = T()
+        await t.run()
 
 
 class TestArgumentTask(object):
