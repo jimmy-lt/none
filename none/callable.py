@@ -20,6 +20,7 @@
 #
 """Callable facilities."""
 import typing as ty
+import asyncio
 import functools
 
 
@@ -147,6 +148,73 @@ class hook(object):
                 self.hanging.add(member)
 
 
+class asynchook(hook):
+    """An asynchronous *hook* is a coroutine which when it is scheduled, will
+    also call all other coroutines hanging to it.
+
+    A hook is created by using the class as a decorator.
+
+    ::
+
+        >>> import none
+        >>> @none.callable.asynchook
+        ... async def my_hook():
+        ...     print("I'm an asynchronous hook.")
+
+
+    Other coroutines can hang to the hook defined above by using the
+    :class:`none.callable.asynccatch` decorator.
+
+    ::
+
+        >>> @none.callable.asynccatch(my_hook)
+        ... async def my_catch():
+        ...     print("I'm hanging asynchronously.")
+
+
+    Therefore, when ``my_hook()`` is scheduled, it will also call ``my_catch()``
+    (and other hanging functions) afterwards.
+
+    ::
+
+        >>> import asyncio
+        >>> asyncio.get_event_loop().run_until_complete(my_hook())
+        I'm an asynchronous hook.
+        I'm hanging asynchronously.
+
+
+    An asynchrounous hook can also decorate an asynchronous method. A catch
+    within the same class context (including a child class) can hang to the hook
+    by using it's name.
+
+    ::
+
+        >>> class AsyncHookable(object):
+        ...     @none.callable.asynchook
+        ...     async def my_hook(self):
+        ...          print("I'm an asynchronous hook in a class.")
+        ...     @none.callable.asynccatch("my_hook")
+        ...     async def my_catch(self)
+        ...         print("I'm catching asynchronously in a class.")
+        ...
+        >>> h = AsyncHookable()
+        >>> asyncio.get_event_loop().run_until_complete(h.my_hook())
+        I'm an asynchronous hook in a class.
+        I'm catching asynchronously in a class.
+
+
+    :param fn: The coroutine which can be hooked to.
+    :type fn: ~typing.Optional[~typing.Callable]
+
+    """
+
+    async def __call__(self, *args, **kwargs):
+        """Execute the hook along with its hanging coroutines."""
+        self.hangup()
+        await self.fn(*(self._args + args), **kwargs)
+        await asyncio.gather(*(fn(*args, **kwargs) for fn in self.hanging))
+
+
 class catch(hook):
     """The ``catch`` decorator allow a function to notify a hook that it needs
     to be executed when the hook is called. A *catch* is also a hook, therefore
@@ -231,3 +299,80 @@ class catch(hook):
         functools.update_wrapper(self, self.fn)
         if isinstance(self.hook, hook):
             self.hook.hanging.add(self)
+
+
+class asynccatch(asynchook, catch):
+    """The ``asynccatch`` decorator allow a coroutine to notify an asynchronous
+    hook that it needs to be called when the hook is scheduled. A *catch* is
+    also a hook, therefore allowing a chain of reaction when the primary hook is
+    called.
+
+    In order to define a catching coroutine, a hook must already be available.
+
+    ::
+
+        >>> import none
+        >>> @none.callable.asynchook
+        ... async def my_hook():
+        ...     print("I'm an asynchronous hook.")
+
+
+    Then any coroutine can catch an existing hook.
+
+    ::
+
+        >>> @none.callable.asynccatch(my_hook)
+        ... async def my_catch():
+        ...     print("I'm hanging asynchronously.")
+
+
+    By scheduling the hook, all coroutines hanging to it will also be called.
+
+    ::
+
+        >>> import asyncio
+        >>> asyncio.get_event_loop().run_until_complete(my_hook())
+        I'm an asynchronous hook.
+        I'm hanging asynchronously.
+
+
+    It is also possible to catch an asynchronous hook within the same class
+    context by using its name.
+
+    ::
+
+        >>> class AsyncHookable(object):
+        ...     @none.callable.asynchook
+        ...     async def my_hook(self):
+        ...          print("I'm an asynchronous hook in a class.")
+        ...     @none.callable.asynccatch("my_hook")
+        ...     async def my_catch(self)
+        ...         print("I'm catching asynchronously in a class.")
+        ...
+        >>> h = AsyncHookable()
+        >>> asyncio.get_event_loop().run_until_complete(h.my_hook())
+        I'm an asynchronous hook in a class.
+        I'm catching asynchronously in a class.
+
+
+    :param target: The hook or the name of the hook to catch.
+    :type target: ~typing.Union[~none.callable.asynchook, str]
+
+    """
+
+    def __init__(self, target: ty.Union[hook, str]):
+        """Constructor for :class:`none.callable.asynccatch`."""
+        super(asynccatch, self).__init__(None)
+        self.hook = target
+
+    def __call__(self, *args, **kwargs):
+        """Execute the hook function along with its hanging functions."""
+        if self.fn is None:
+            # Decorator mode, we need to setup the decorated coroutine.
+            self._register(args[0])
+            return self
+        else:
+            # Run mode, we have to execute our decorated coroutine.
+            return asyncio.ensure_future(
+                super(asynccatch, self).__call__(*args, **kwargs)
+            )
