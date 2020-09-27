@@ -1,5 +1,5 @@
-# none/__init__.py
-# ================
+# none/typeset.py
+# ===============
 #
 # Copying
 # -------
@@ -18,6 +18,17 @@
 # You should have received a copy of the MIT License along with
 # *none*. If not, see <http://opensource.org/licenses/MIT>.
 #
-import none.url
-import none.text
-import none.collection
+import typing as ty
+
+
+#: Generic return type.
+R = ty.TypeVar("R")
+#: Generic type.
+T = ty.TypeVar("T")
+
+# FIXME: Allow specification of the parameters and return type.
+#: An asynchronous callable.
+AsyncCallable = ty.Callable[..., ty.Awaitable[R]]
+
+#: Sentinel object to represent missing values.
+missing = object()
