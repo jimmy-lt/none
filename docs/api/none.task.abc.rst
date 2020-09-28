@@ -1,5 +1,5 @@
-.. api/none.rst
-.. ============
+.. api/none.task.abc.rst
+.. =====================
 ..
 .. Copying
 .. -------
@@ -18,20 +18,7 @@
 .. You should have received a copy of the MIT License along with
 .. *none*. If not, see <http://opensource.org/licenses/MIT>.
 
-none
-====
+none.task.abc
+=============
 
-.. automodule:: none
-
-
-Subpackages
------------
-
-.. toctree::
-  :maxdepth: 2
-
-  none.callable
-  none.collection
-  none.task
-  none.text
-  none.url
+.. automodule:: none.task.abc
