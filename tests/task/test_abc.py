@@ -120,6 +120,30 @@ def SequenceBatch():
 
 
 @pytest.fixture
+def AsyncSequenceBatch():
+    """Generate an asynchronous batch task which count up to provided number."""
+
+    class AsyncSequenceBatch(none.task.abc.AsyncBatch, none.task.abc.AsyncTask):
+        """A counter."""
+
+        def __init__(self, stop: int = 0, *args, **kwargs):
+            super(AsyncSequenceBatch, self).__init__(*args, **kwargs)
+            self.stack = []
+            self.stop = stop
+            self.batch_size = 1
+
+        async def __call__(self, number: int):
+            self.stack.append(number)
+
+        @property
+        async def data(self):
+            for x in range(self.stop):
+                yield x
+
+    return AsyncSequenceBatch
+
+
+@pytest.fixture
 def SuperBatch():
     """Generate a batch task which just call the super class."""
 
@@ -137,6 +161,27 @@ def SuperBatch():
             yield from range(self.stop)
 
     return SuperBatch
+
+
+@pytest.fixture
+def AsyncSuperBatch():
+    """Generate an asynchronous batch task which just calls the super class."""
+
+    class AsyncSuperBatch(none.task.abc.AsyncBatch, none.task.abc.AsyncTask):
+        def __init__(self, stop: int = 0, *args, **kwargs):
+            super(AsyncSuperBatch, self).__init__(*args, **kwargs)
+            self.stop = stop
+            self.batch_size = 1
+
+        async def __call__(self, *args, **kwargs):
+            await super(AsyncSuperBatch, self).__call__(*args, **kwargs)
+
+        @property
+        async def data(self):
+            for x in range(self.stop):
+                yield x
+
+    return AsyncSuperBatch
 
 
 @pytest.fixture
@@ -167,6 +212,12 @@ def asynceofargumenttask(AsyncEOFArgumentTask):
 def sequencebatch(SequenceBatch):
     """Generate an instance of ``SequenceBatch``."""
     return SequenceBatch()
+
+
+@pytest.fixture
+def asyncsequencebatch(AsyncSequenceBatch):
+    """Generate an instance of ``AsyncSequenceBatch``."""
+    return AsyncSequenceBatch()
 
 
 class TestTask(object):
@@ -927,3 +978,227 @@ class TestBatch(object):
 
         t = T(stop=nruns)
         t.run()
+
+
+class TestAsyncBatch(object):
+    """Test cases for :class:`none.task.abc.AsyncBatch`."""
+
+    @pytest.mark.asyncio
+    async def test_run_ensure_expected(self, asyncsequencebatch):
+        """Make sure the batch task executes as expected."""
+        nruns = 5
+
+        asyncsequencebatch.stop = nruns
+        await asyncsequencebatch.run()
+
+        assert asyncsequencebatch.stack == list(range(nruns))
+
+    @pytest.mark.asyncio
+    async def test_run_should_call_a_new_task(self, AsyncSequenceBatch):
+        stack = []
+        nruns = 5
+
+        class T(AsyncSequenceBatch):
+            async def on_call(self):
+                stack.append("called")
+
+        t = T(stop=nruns)
+        await t.run()
+
+        assert len(stack) == nruns
+
+    @pytest.mark.asyncio
+    async def test_run_ignored_exception_are_raised(
+        self, AsyncSuperBatch, AsyncEOFTask
+    ):
+        """Ignored exceptions are raised when ``raise_exc`` is ``True``."""
+        nruns = 3
+
+        # EOFTask raises ``EOFError`` when called.
+        class T(AsyncSuperBatch, AsyncEOFTask):
+            pass
+
+        t = T(stop=nruns, raise_exc=True, ignore_exc=(EOFError,))
+        with pytest.raises(EOFError):
+            await t.run()
+
+    @pytest.mark.asyncio
+    async def test_run_ignored_exception_can_be_inhibited(
+        self, AsyncSuperBatch, AsyncEOFTask
+    ):
+        """Ignored exceptions are *not* raised when ``raise_exc`` is ``False``.
+
+        """
+        nruns = 3
+
+        # EOFTask raises ``EOFError`` when called.
+        class T(AsyncSuperBatch, AsyncEOFTask):
+            pass
+
+        t = T(stop=nruns, raise_exc=False, ignore_exc=(EOFError,))
+        await t.run()
+
+    @pytest.mark.asyncio
+    async def test_run_events_should_be_called_in_order(self, AsyncSequenceBatch):
+        """Events should be called following the execution flow."""
+        stack = []
+
+        class T(AsyncSequenceBatch):
+            async def on_batch_call(self):
+                stack.append("on_batch_call")
+
+            async def on_batch_done(self):
+                stack.append("on_batch_done")
+
+            async def on_batch_exit(self):
+                stack.append("on_batch_exit")
+
+        t = T()
+        await t.run()
+
+        assert stack == ["on_batch_call", "on_batch_done", "on_batch_exit"]
+
+    @pytest.mark.asyncio
+    async def test_run_caught_events_should_be_called_in_order(
+        self, AsyncSequenceBatch
+    ):
+        """Events can be caught and hanging functions should be called following
+        the execution flow.
+
+        """
+        stack = []
+
+        class T(AsyncSequenceBatch):
+            @none.callable.asynccatch("on_batch_call")
+            async def catch_batch_call(self):
+                stack.append("on_batch_call")
+
+            @none.callable.asynccatch("on_batch_done")
+            async def catch_batch_done(self):
+                stack.append("on_batch_done")
+
+            @none.callable.asynccatch("on_batch_exit")
+            async def catch_batch_exit(self):
+                stack.append("on_batch_exit")
+
+        t = T()
+        await t.run()
+
+        assert stack == ["on_batch_call", "on_batch_done", "on_batch_exit"]
+
+    @pytest.mark.asyncio
+    async def test_run_on_batch_failure_should_be_called_on_exception(
+        self, AsyncSuperBatch, AsyncEOFTask
+    ):
+        """In case of error, the ``on_batch_failure()`` event should be called
+        with the raised exception.
+
+        """
+        stack = []
+        nruns = 2
+
+        # AsyncEOFTask raises ``EOFError`` when called.
+        class T(AsyncSuperBatch, AsyncEOFTask):
+            async def on_batch_failure(self, *exc):
+                for e in exc:
+                    stack.append(e)
+
+        t = T(stop=nruns)
+        with pytest.raises(EOFError):
+            await t.run()
+
+        for a, b in zip_longest(stack, [EOFError]):
+            assert isinstance(a, b)
+
+    @pytest.mark.asyncio
+    async def test_run_all_exception_raised_should_be_passed_to_on_batch_failure_in_order(
+        self, AsyncSuperBatch, AsyncEOFTask
+    ):
+        """When the ``on_batch_done()`` event is raising an exception it should
+        also be passed along with the original exception.
+
+        """
+        stack = []
+        nruns = 2
+
+        # AsyncEOFTask raises ``EOFError`` when called.
+        class T(AsyncSuperBatch, AsyncEOFTask):
+            async def on_batch_done(self):
+                raise InterruptedError
+
+            async def on_batch_failure(self, *exc):
+                self.batch_raise_exc = False
+                for e in exc:
+                    stack.append(e)
+
+        t = T(stop=nruns)
+        await t.run()
+
+        for a, b in zip_longest(stack, [EOFError, InterruptedError]):
+            assert isinstance(a, b)
+
+    @pytest.mark.asyncio
+    async def test_run_last_exception_is_raised(self, AsyncSuperBatch, AsyncEOFTask):
+        """In case, multiple exception are raised during the task execution,
+        only the last one will be raised upwards.
+
+        """
+        # EOFTask raises ``EOFError`` when called.
+        stack = []
+        nruns = 2
+
+        class T(AsyncSuperBatch, AsyncEOFTask):
+            async def on_batch_done(self):
+                raise InterruptedError
+
+            async def on_batch_failure(self, *exc):
+                for e in exc:
+                    stack.append(e)
+
+        t = T(stop=nruns)
+        with pytest.raises(InterruptedError) as exc:
+            await t.run()
+
+        assert isinstance(stack[-1], exc.type)
+
+    @pytest.mark.asyncio
+    async def test_run_ignored_exception_should_be_passed_to_on_batch_success(
+        self, AsyncSuperBatch, AsyncEOFTask
+    ):
+        """Ignored raised exceptions should be passed to the
+        ``on_batch_success()`` event.
+
+        """
+        stack = []
+        nruns = 3
+
+        # EOFTask raises ``EOFError`` when called.
+        class T(AsyncSuperBatch, AsyncEOFTask):
+            async def on_batch_success(self, *exc):
+                for e in exc:
+                    stack.append(e)
+
+        t = T(stop=nruns, ignore_exc=(EOFError,))
+        with pytest.raises(EOFError):
+            await t.run()
+
+        for a, b in zip_longest(stack, [EOFError] * nruns):
+            assert isinstance(a, b)
+
+    @pytest.mark.asyncio
+    async def test_on_batch_failure_can_inhibit_error_propagation(
+        self, AsyncSuperBatch, AsyncEOFTask
+    ):
+        """The ``on_failure()`` event can prevent the exception to propagate
+        towards upper layers.
+
+        """
+        nruns = 2
+
+        # AsyncEOFTask raises ``EOFError`` when called.
+        class T(AsyncSuperBatch, AsyncEOFTask):
+            async def on_batch_failure(self, *exc):
+                self.batch_raise_exc = False
+
+        t = T(stop=nruns)
+        await t.run()
