@@ -537,3 +537,115 @@ class adelay(delay):
             return await fn(*args, **kwargs)
 
         return _wrapper
+
+
+class retry(object):
+    """Retry the provided function when the listed exception(s) is raised. If
+    the allowed number of attempts is reached and the function still didn't
+    succeed, the latest exception is raised on last resort.
+
+
+    :param exception: The exception for which execution of the callable can be
+                       tried again.
+    :type exception: ~typing.Type[Exception]
+
+    :param attempts: The amount of times execution of the function should be
+                     tried. When set to ``None``, the function is tried
+                     indefinitely.
+    :type attempts: ~typing.Optional[int]
+
+    """
+
+    def __init__(
+        self, *exception: ty.Type[Exception], attempts: ty.Optional[int] = None
+    ):
+        """Constructor for :class:`none.callable.retry`."""
+        self.exception = exception
+        if attempts is None:
+            self._loop = range(sys.maxsize)
+        elif attempts < 0:
+            raise ValueError("attempts value must be non-negative.")
+        else:
+            self._loop = range(attempts)
+
+    def __call__(self, fn: C) -> C:
+        """Wrap the decorated function to be retried.
+
+
+        :param fn: The function to be retried.
+        :type fn: ~typing.Callable
+
+
+        :returns: The given callable, wrapped to be retried as requested.
+        :rtype: ~typing.Callable
+
+        """
+
+        @functools.wraps(fn)
+        def _wrapper(*args, **kwargs):
+            _exc = None
+            for i in self._loop:
+                log.info(f"{fn.__name__}: attempt {i}.")
+                _exc = None
+                try:
+                    return fn(*args, **kwargs)
+                except self.exception as e:
+                    log.debug(f"{fn.__name__}: raised `{e!r}`.", exc_info=True)
+                    log.info(f"{fn.__name__}: retry on `{e!r}`.")
+                    _exc = e
+            if _exc:
+                log.error(f"{fn.__name__}: failed last with `{_exc!r}`.")
+                raise _exc
+            log.info(f"{fn.__name__}: completed.")
+
+        return _wrapper
+
+
+class aretry(retry):
+    """Retry the provided awaitable function when the listed exception(s) is
+    raised. If the allowed number of attempts is reached and the function still
+    didn't succeed, the latest exception is raised on last resort.
+
+
+    :param exception: The exception for which execution of the callable can be
+                       tried again.
+    :type exception: ~typing.Type[Exception]
+
+    :param attempts: The amount of times execution of the function should be
+                     tried. When set to ``None``, the function is tried
+                     indefinitely.
+    :type attempts: ~typing.Optional[int]
+
+    """
+
+    def __call__(self, fn: AsyncCallable) -> AsyncCallable:
+        """Wrap the decorated awaitable function to be retried.
+
+
+        :param fn: The awaitable function to be retried.
+        :type fn: ~none.typeset.AsyncCallable
+
+
+        :returns: The given callable, wrapped to be retried as requested.
+        :rtype: ~none.typeset.AsyncCallable
+
+        """
+
+        @functools.wraps(fn)
+        async def _wrapper(*args, **kwargs):
+            _exc = None
+            for i in self._loop:
+                log.info(f"{fn.__name__}: attempt {i}.")
+                _exc = None
+                try:
+                    return await fn(*args, **kwargs)
+                except self.exception as e:
+                    log.debug(f"{fn.__name__}: raised `{e!r}`.", exc_info=True)
+                    log.info(f"{fn.__name__}: retry on `{e!r}`.")
+                    _exc = e
+            if _exc:
+                log.error(f"{fn.__name__}: failed last with `{_exc!r}`.")
+                raise _exc
+            log.info(f"{fn.__name__}: completed.")
+
+        return _wrapper
