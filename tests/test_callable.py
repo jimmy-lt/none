@@ -19,9 +19,17 @@
 # *none*. If not, see <http://opensource.org/licenses/MIT>.
 #
 """Test cases for :mod:`none.callable`."""
+from contextlib import suppress
+
 import pytest
 
+from hypothesis import given, assume, strategies as st
+
 import none
+
+
+#: Maximum amount of times a function can be tried again.
+MAX_RETRY = (2 ** 13) - 1
 
 
 class TestCatchHook(object):
@@ -592,3 +600,574 @@ class TestAsyncCatchHook(object):
         c = AsyncCatcher()
         await c.my_hook()
         assert stack == {0, 1, 2}
+
+
+class TestDelay(object):
+    """Test cases for :class:`none.callable.delay`."""
+
+    def test_delay_no_parenthesis_valueerror(self):
+        """Calling the ``delay`` decorator with no parenthesis should raise a
+        ``ValueError``.
+
+        """
+
+        with pytest.raises(ValueError):
+
+            @none.callable.delay
+            def noop():
+                pass
+
+    def test_delay_no_parameters_valueerror(self):
+        """Calling the ``delay`` decorator with no parameters should raise a
+        ``ValueError``.
+
+        """
+
+        with pytest.raises(ValueError):
+
+            @none.callable.delay()
+            def noop():
+                pass
+
+    def test_delay_extra_parameters_valueerror(self):
+        """Unexpected parameters should raise a ``ValueError``."""
+
+        with pytest.raises(ValueError):
+
+            @none.callable.delay(0, 0, 0, "--INVALID--")
+            def noop():
+                pass
+
+    @pytest.mark.parametrize("args", ((None,), (0, None), (0, None, 0)))
+    def test_delay_high_none_valueerror(self, args):
+        """Setting ``high`` to ``None`` should raise a ``ValueError``."""
+
+        with pytest.raises(ValueError):
+
+            @none.callable.delay(*args)
+            def noop():
+                pass
+
+    @given(
+        low=st.floats(max_value=0, exclude_max=True),
+        high=st.floats(max_value=0, exclude_max=True),
+    )
+    def test_delay_negative_low_or_high_valueerror(self, low, high):
+        """Having ``low`` or ``high`` parameters lower than ``0`` should raise a
+        ``ValueError``.
+
+        """
+        with pytest.raises(ValueError):
+
+            @none.callable.delay(low, high)
+            def noop():
+                pass
+
+    @given(low=st.floats(min_value=0), high=st.floats(min_value=0))
+    def test_delay_low_higher_than_high_valueerror(self, low, high):
+        """Having ``low`` parameter higher than ``high`` should raise a
+        ``ValueError``.
+
+        """
+        assume(low > high)
+
+        with pytest.raises(ValueError):
+
+            @none.callable.delay(low, high)
+            def noop():
+                pass
+
+    @given(
+        low=st.floats(min_value=0),
+        high=st.floats(min_value=0),
+        mode=st.floats(min_value=0),
+    )
+    def test_delay_mode_out_of_bounds_valueerror(self, low, high, mode):
+        """Having ``mode`` parameter out of bounds should raise a
+        ``ValueError``.
+
+        """
+        assume(low <= high)
+        assume(low > mode or mode > high)
+
+        with pytest.raises(ValueError):
+
+            @none.callable.delay(low, high, mode)
+            def noop():
+                pass
+
+    @given(high=st.floats(min_value=0))
+    def test_delay_high_only(self, monkeypatch, high):
+        """When setting a high delay value only, the sleep time must match the
+        provided value.
+
+        """
+        import time
+
+        sentinel = object()
+        stack = []
+
+        with monkeypatch.context() as m:
+            m.setattr(time, "sleep", lambda x: stack.append(x))
+
+            @none.callable.delay(high)
+            def append_sentinel():
+                stack.append(sentinel)
+
+            append_sentinel()
+
+        assert stack == [high, sentinel]
+
+    @given(high=st.floats(min_value=0))
+    def test_delay_low_set_to_none_and_high(self, monkeypatch, high):
+        """When setting a high delay value with ``low`` set to ``None``, the
+        ``high`` value is used.
+
+        """
+        import time
+
+        sentinel = object()
+        stack = []
+
+        with monkeypatch.context() as m:
+            m.setattr(time, "sleep", lambda x: stack.append(x))
+
+            @none.callable.delay(None, high)
+            def append_sentinel():
+                stack.append(sentinel)
+
+            append_sentinel()
+
+        assert stack == [high, sentinel]
+
+    @given(low=st.floats(min_value=0), high=st.floats(min_value=0))
+    def test_delay_with_both_low_and_high(self, monkeypatch, low, high):
+        """When both ``low`` and ``high`` values are set, a random value in
+        between is chosen.
+
+        """
+        assume(low <= high)
+
+        import math
+        import time
+
+        sentinel = object()
+        stack = []
+
+        with monkeypatch.context() as m:
+            m.setattr(time, "sleep", lambda x: stack.append(x))
+
+            @none.callable.delay(low, high)
+            def append_sentinel():
+                stack.append(sentinel)
+
+            append_sentinel()
+
+        # By providing ``float("inf")`` to ``random.triangular``,
+        # ``float("nan")`` will be returned.
+        #
+        # As ``time.sleep`` will complain we let the user deal with it.
+        if not math.isnan(stack[0]):
+            assert low <= stack[0] <= high
+        assert stack[-1] == sentinel
+
+    @given(
+        low=st.floats(min_value=0),
+        high=st.floats(min_value=0),
+        mode=st.floats(min_value=0),
+    )
+    def test_delay_with_low_high_and_mode(self, monkeypatch, low, high, mode):
+        """Test ``delay`` will all accepted parameters."""
+        assume(low <= high)
+        assume(low <= mode <= high)
+
+        import math
+        import time
+
+        sentinel = object()
+        stack = []
+
+        with monkeypatch.context() as m:
+            m.setattr(time, "sleep", lambda x: stack.append(x))
+
+            @none.callable.delay(low, high, mode)
+            def append_sentinel():
+                stack.append(sentinel)
+
+            append_sentinel()
+
+        # By providing ``float("inf")`` to ``random.triangular``,
+        # ``float("nan")`` will be returned.
+        #
+        # As ``time.sleep`` will complain we let the user deal with it.
+        if not math.isnan(stack[0]):
+            assert low <= stack[0] <= high
+        assert stack[-1] == sentinel
+
+
+class TestAsyncDelay(object):
+    """Test cases for :class:`none.callable.adelay`."""
+
+    def test_adelay_no_parenthesis_valueerror(self):
+        """Calling the ``adelay`` decorator with no parenthesis should raise a
+        ``ValueError``.
+
+        """
+
+        with pytest.raises(ValueError):
+
+            @none.callable.adelay
+            async def noop():
+                pass
+
+    def test_adelay_no_parameters_valueerror(self):
+        """Calling the ``delay`` decorator with no parameters should raise a
+        ``ValueError``.
+
+        """
+
+        with pytest.raises(ValueError):
+
+            @none.callable.adelay()
+            async def noop():
+                pass
+
+    def test_adelay_extra_parameters_valueerror(self):
+        """Unexpected parameters should raise a ``ValueError``."""
+
+        with pytest.raises(ValueError):
+
+            @none.callable.adelay(0, 0, 0, "--INVALID--")
+            async def noop():
+                pass
+
+    @pytest.mark.parametrize("args", ((None,), (0, None), (0, None, 0)))
+    def test_adelay_high_none_valueerror(self, args):
+        """Setting ``high`` to ``None`` should raise a ``ValueError``."""
+
+        with pytest.raises(ValueError):
+
+            @none.callable.adelay(*args)
+            async def noop():
+                pass
+
+    @given(
+        low=st.floats(max_value=0, exclude_max=True),
+        high=st.floats(max_value=0, exclude_max=True),
+    )
+    def test_adelay_negative_low_or_high_valueerror(self, low, high):
+        """Having ``low`` or ``high`` parameters lower than ``0`` should raise a
+        ``ValueError``.
+
+        """
+        with pytest.raises(ValueError):
+
+            @none.callable.adelay(low, high)
+            async def noop():
+                pass
+
+    @given(low=st.floats(min_value=0), high=st.floats(min_value=0))
+    def test_adelay_low_higher_than_high_valueerror(self, low, high):
+        """Having ``low`` parameter higher than ``high`` should raise a
+        ``ValueError``.
+
+        """
+        assume(low > high)
+
+        with pytest.raises(ValueError):
+
+            @none.callable.adelay(low, high)
+            async def noop():
+                pass
+
+    @given(
+        low=st.floats(min_value=0),
+        high=st.floats(min_value=0),
+        mode=st.floats(min_value=0),
+    )
+    def test_adelay_mode_out_of_bounds_valueerror(self, low, high, mode):
+        """Having ``mode`` parameter out of bounds should raise a
+        ``ValueError``.
+
+        """
+        assume(low <= high)
+        assume(low > mode or mode > high)
+
+        with pytest.raises(ValueError):
+
+            @none.callable.adelay(low, high, mode)
+            async def noop():
+                pass
+
+    @pytest.mark.asyncio
+    @given(high=st.floats(min_value=0))
+    async def test_adelay_high_only(self, monkeypatch, high):
+        """When setting a high delay value only, the sleep time must match the
+        provided value.
+
+        """
+        import asyncio
+
+        sentinel = object()
+        stack = []
+
+        async def fake_sleep(x):
+            stack.append(x)
+
+        with monkeypatch.context() as m:
+            m.setattr(asyncio, "sleep", fake_sleep)
+
+            @none.callable.adelay(high)
+            async def append_sentinel():
+                stack.append(sentinel)
+
+            await append_sentinel()
+
+        assert stack == [high, sentinel]
+
+    @pytest.mark.asyncio
+    @given(high=st.floats(min_value=0))
+    async def test_adelay_low_set_to_none_and_high(self, monkeypatch, high):
+        """When setting a high delay value with ``low`` set to ``None``, the
+        ``high`` value is used.
+
+        """
+        import asyncio
+
+        sentinel = object()
+        stack = []
+
+        async def fake_sleep(x):
+            stack.append(x)
+
+        with monkeypatch.context() as m:
+            m.setattr(asyncio, "sleep", fake_sleep)
+
+            @none.callable.adelay(None, high)
+            async def append_sentinel():
+                stack.append(sentinel)
+
+            await append_sentinel()
+
+        assert stack == [high, sentinel]
+
+    @pytest.mark.asyncio
+    @given(low=st.floats(min_value=0), high=st.floats(min_value=0))
+    async def test_adelay_with_both_low_and_high(self, monkeypatch, low, high):
+        """When both ``low`` and ``high`` values are set, a random value in
+        between is chosen.
+
+        """
+        assume(low <= high)
+
+        import math
+        import asyncio
+
+        sentinel = object()
+        stack = []
+
+        async def fake_sleep(x):
+            stack.append(x)
+
+        with monkeypatch.context() as m:
+            m.setattr(asyncio, "sleep", fake_sleep)
+
+            @none.callable.adelay(low, high)
+            async def append_sentinel():
+                stack.append(sentinel)
+
+            await append_sentinel()
+
+        # By providing ``float("inf")`` to ``random.triangular``,
+        # ``float("nan")`` will be returned.
+        #
+        # As ``time.sleep`` will complain we let the user deal with it.
+        if not math.isnan(stack[0]):
+            assert low <= stack[0] <= high
+        assert stack[-1] == sentinel
+
+    @pytest.mark.asyncio
+    @given(
+        low=st.floats(min_value=0),
+        high=st.floats(min_value=0),
+        mode=st.floats(min_value=0),
+    )
+    async def test_adelay_with_low_high_and_mode(self, monkeypatch, low, high, mode):
+        """Test ``delay`` will all accepted parameters."""
+        assume(low <= high)
+        assume(low <= mode <= high)
+
+        import math
+        import asyncio
+
+        sentinel = object()
+        stack = []
+
+        async def fake_sleep(x):
+            stack.append(x)
+
+        with monkeypatch.context() as m:
+            m.setattr(asyncio, "sleep", fake_sleep)
+
+            @none.callable.adelay(low, high, mode)
+            async def append_sentinel():
+                stack.append(sentinel)
+
+            await append_sentinel()
+
+        # By providing ``float("inf")`` to ``random.triangular``,
+        # ``float("nan")`` will be returned.
+        #
+        # As ``time.sleep`` will complain we let the user deal with it.
+        if not math.isnan(stack[0]):
+            assert low <= stack[0] <= high
+        assert stack[-1] == sentinel
+
+
+class TestRetry(object):
+    """Test cases for :class:`none.callable.retry`."""
+
+    def test_retry_no_exception_on_success(self):
+        """The decorated function should not raise on success."""
+        errors = (TypeError, ValueError)
+        errors_it = iter(errors)
+
+        # Ensure the function executed.
+        stack = []
+
+        @none.callable.retry(*errors)
+        def throw():
+            # Raise retryable exceptions and complete successfully on
+            # exhaustion.
+            with suppress(StopIteration):
+                stack.append(1)
+                raise next(errors_it)
+
+        throw()
+        assert sum(stack) == len(errors) + 1
+
+    def test_retry_given_exceptions_only(self):
+        """Ensure the decorated function is retried on provided exceptions."""
+        errors = (TypeError, ValueError, EOFError)
+        errors_it = iter(errors)
+
+        # Ensure the function executed.
+        stack = []
+
+        @none.callable.retry(*errors[:-1])
+        def throw():
+            stack.append(1)
+            raise next(errors_it)
+
+        with pytest.raises(errors[-1]):
+            throw()
+        assert sum(stack) == len(errors)
+
+    @given(attempts=st.integers(max_value=0))
+    def test_retry_negative_attempts_valueeror(self, attempts):
+        """Providing a negative attempts value should raise a ``ValueError``."""
+        assume(attempts < 0)
+
+        with pytest.raises(ValueError):
+
+            @none.callable.retry(EOFError, attempts=attempts)
+            def noop():
+                pass
+
+    @given(attempts=st.integers(min_value=0, max_value=MAX_RETRY))
+    def test_retry_up_to_max_retry(self, attempts):
+        """Ensure the decorated function is retried up to the maximum of allowed
+        attempts.
+
+        """
+        stack = []
+
+        @none.callable.retry(ValueError, attempts=attempts)
+        def throw():
+            stack.append(1)
+            raise ValueError
+
+        # On ``attempts`` set to ``0`` the function is not executed.
+        if attempts == 0:
+            throw()
+        else:
+            with pytest.raises(ValueError):
+                throw()
+
+        assert sum(stack) == attempts
+
+
+class TestAsyncRetry(object):
+    """Test cases for :class:`none.callable.aretry`."""
+
+    @pytest.mark.asyncio
+    async def test_aretry_no_exception_on_success(self):
+        """The decorated function should not raise on success."""
+        errors = (TypeError, ValueError)
+        errors_it = iter(errors)
+
+        # Ensure the function executed.
+        stack = []
+
+        @none.callable.aretry(*errors)
+        async def throw():
+            # Raise retryable exceptions and complete successfully on
+            # exhaustion.
+            with suppress(StopIteration):
+                stack.append(1)
+                raise next(errors_it)
+
+        await throw()
+        assert sum(stack) == len(errors) + 1
+
+    @pytest.mark.asyncio
+    async def test_aretry_given_exceptions_only(self):
+        """Ensure the decorated function is retried on provided exceptions."""
+        errors = (TypeError, ValueError, EOFError)
+        errors_it = iter(errors)
+
+        # Ensure the function executed.
+        stack = []
+
+        @none.callable.aretry(*errors[:-1])
+        async def throw():
+            stack.append(1)
+            raise next(errors_it)
+
+        with pytest.raises(errors[-1]):
+            await throw()
+        assert sum(stack) == len(errors)
+
+    @given(attempts=st.integers(max_value=0))
+    def test_aretry_negative_attempts_valueeror(self, attempts):
+        """Providing a negative attempts value should raise a ``ValueError``."""
+        assume(attempts < 0)
+
+        with pytest.raises(ValueError):
+
+            @none.callable.aretry(EOFError, attempts=attempts)
+            async def noop():
+                pass
+
+    @pytest.mark.asyncio
+    @given(attempts=st.integers(min_value=0, max_value=MAX_RETRY))
+    async def test_aretry_up_to_max_retry(self, attempts):
+        """Ensure the decorated function is retried up to the maximum of allowed
+        attempts.
+
+        """
+        stack = []
+
+        @none.callable.aretry(ValueError, attempts=attempts)
+        async def throw():
+            stack.append(1)
+            raise ValueError
+
+        # On ``attempts`` set to ``0`` the function is not executed.
+        if attempts == 0:
+            await throw()
+        else:
+            with pytest.raises(ValueError):
+                await throw()
+
+        assert sum(stack) == attempts

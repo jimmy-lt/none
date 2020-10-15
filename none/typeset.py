@@ -20,7 +20,13 @@
 #
 import typing as ty
 
+from collections.abc import Callable
 
+
+#: A callable type.
+C = ty.TypeVar("C", bound=Callable)
+#: Any number.
+N = ty.TypeVar("N", float, int)
 #: Generic return type.
 R = ty.TypeVar("R")
 #: Generic type.

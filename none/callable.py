@@ -19,9 +19,18 @@
 # *none*. If not, see <http://opensource.org/licenses/MIT>.
 #
 """Callable facilities."""
+import sys
+import time
+import random
 import typing as ty
 import asyncio
+import logging
 import functools
+
+from none.typeset import C, N, AsyncCallable
+
+
+log = logging.getLogger(__name__)
 
 
 class hook(object):
@@ -376,3 +385,267 @@ class asynccatch(asynchook, catch):
             return asyncio.ensure_future(
                 super(asynccatch, self).__call__(*args, **kwargs)
             )
+
+
+class delay(object):
+    """Delay the execution of the decorated function within specified bounds.
+    When both ``low`` and  ``high`` are provided, a value within bounds of the
+    two values is randomly chosen with. The ``mode``, is a value between ``low``
+    and ``high`` to influence the delay distribution.
+
+
+    :param low: The minimum amount of time in seconds for the function to be
+                delayed.
+    :type low: ~typing.Optional[~typing.Union[float, int]]
+
+    :param high: The maximum amount of time in seconds for the function to be
+                 delayed.
+    :type high: ~typing.Union[float, int]
+
+    :param mode: A weight value within bounds of ``low`` and ``high`` to
+                 influence the distribution of the delay value.
+    :type mode: ~typing.Optional[~typing.Union[float, int]]
+
+    """
+
+    @ty.overload
+    def __init__(self, high: N):
+        ...
+
+    @ty.overload
+    def __init__(self, low: N, high: N, mode: ty.Optional[N] = None):
+        ...
+
+    def __init__(self, *args):
+        """Constructor for :class:`none.callable.delay`."""
+        #: The minimum amount of time the function will be delayed.
+        self.low: ty.Optional[N] = None
+        #: The maximum amount of time the function will be delayed.
+        self.high: N = None
+        #: An optional weight to adjust the distribution value.
+        self.mode: ty.Optional[N] = None
+
+        if len(args) == 1 and callable(args[0]):
+            # We were called without parenthesis.
+            raise ValueError("cannot be used without arguments.")
+
+        if len(args) == 1:
+            # We're called only with the high delay value.
+            self.high = args[0]
+        elif len(args) == 2:
+            # We're called with a range delay value.
+            self.low, self.high = args
+        elif len(args) == 3:
+            self.low, self.high, self.mode = args
+        else:
+            raise ValueError("unexpected arguments.")
+
+        if self.high is None:
+            raise ValueError("`high` cannot be `None`.")
+        if (self.low is not None and self.low < 0) or self.high < 0:
+            raise ValueError("delay values must be non-negative.")
+        if self.low is not None and self.low > self.high:
+            raise ValueError("`low` cannot be higher than `high`.")
+
+        # Mode cannot be outside low and high bounds.
+        if (self.low is not None and self.mode is not None) and (
+            self.low > self.mode or self.mode > self.high
+        ):
+            raise ValueError("`mode` is out of bounds.")
+
+    def __call__(self, fn: C) -> C:
+        """Wrap the decorated function to be delayed.
+
+
+        :param fn: The function to be delayed.
+        :type fn: ~typing.Callable
+
+
+        :returns: The given callable, wrapped to be delayed as requested.
+        :rtype: ~typing.Callable
+
+        """
+
+        @functools.wraps(fn)
+        def _wrapper(*args, **kwargs):
+            _secs = self.delay
+            log.info(f"{fn.__name__}: delayed for {_secs:.02f} seconds.")
+            time.sleep(_secs)
+            log.info(f"{fn.__name__}: executing.")
+            return fn(*args, **kwargs)
+
+        return _wrapper
+
+    @property
+    def delay(self) -> N:
+        """Return the amount of time by which the wrapped function must be
+        delayed.
+
+
+        :returns: The amount of time in seconds by which the function must be
+                  delayed.
+        :rtype: ~typing.Union[float, int]
+
+        """
+        if self.low is None:
+            return self.high
+        else:
+            return random.triangular(self.low, self.high, self.mode)
+
+
+class adelay(delay):
+    """Delay the execution of the decorated awaitable function within specified
+    bounds. When both ``low`` and  ``high`` are provided, a value within bounds
+    of the two values is randomly chosen with. The ``mode``, is a value between
+    ``low`` and ``high`` to influence the delay distribution.
+
+
+    :param low: The minimum amount of time in seconds for the function to be
+                delayed.
+    :type low: ~typing.Optional[~typing.Union[float, int]]
+
+    :param high: The maximum amount of time in seconds for the function to be
+                 delayed.
+    :type high: ~typing.Union[float, int]
+
+    :param mode: A weight value within bounds of ``low`` and ``high`` to
+                 influence the distribution of the delay value.
+    :type mode: ~typing.Optional[~typing.Union[float, int]]
+
+    """
+
+    def __call__(self, fn: AsyncCallable) -> AsyncCallable:
+        """Wrap the decorated awaitable function to be delayed.
+
+
+        :param fn: The awaitable function to be delayed.
+        :type fn: ~none.typeset.AsyncCallable
+
+
+        :returns: The given awaitable callable, wrapped to be delayed as
+                  requested.
+        :rtype: ~none.typeset.AsyncCallable
+
+        """
+
+        @functools.wraps(fn)
+        async def _wrapper(*args, **kwargs):
+            _secs = self.delay
+            log.info(f"{fn.__name__}: delayed for {_secs:.02f} seconds.")
+            await asyncio.sleep(_secs)
+            log.info(f"{fn.__name__}: executing.")
+            return await fn(*args, **kwargs)
+
+        return _wrapper
+
+
+class retry(object):
+    """Retry the provided function when the listed exception(s) is raised. If
+    the allowed number of attempts is reached and the function still didn't
+    succeed, the latest exception is raised on last resort.
+
+
+    :param exception: The exception for which execution of the callable can be
+                       tried again.
+    :type exception: ~typing.Type[Exception]
+
+    :param attempts: The amount of times execution of the function should be
+                     tried. When set to ``None``, the function is tried
+                     indefinitely.
+    :type attempts: ~typing.Optional[int]
+
+    """
+
+    def __init__(
+        self, *exception: ty.Type[Exception], attempts: ty.Optional[int] = None
+    ):
+        """Constructor for :class:`none.callable.retry`."""
+        self.exception = exception
+        if attempts is None:
+            self._loop = range(sys.maxsize)
+        elif attempts < 0:
+            raise ValueError("attempts value must be non-negative.")
+        else:
+            self._loop = range(attempts)
+
+    def __call__(self, fn: C) -> C:
+        """Wrap the decorated function to be retried.
+
+
+        :param fn: The function to be retried.
+        :type fn: ~typing.Callable
+
+
+        :returns: The given callable, wrapped to be retried as requested.
+        :rtype: ~typing.Callable
+
+        """
+
+        @functools.wraps(fn)
+        def _wrapper(*args, **kwargs):
+            _exc = None
+            for i in self._loop:
+                log.info(f"{fn.__name__}: attempt {i}.")
+                _exc = None
+                try:
+                    return fn(*args, **kwargs)
+                except self.exception as e:
+                    log.debug(f"{fn.__name__}: raised `{e!r}`.", exc_info=True)
+                    log.info(f"{fn.__name__}: retry on `{e!r}`.")
+                    _exc = e
+            if _exc:
+                log.error(f"{fn.__name__}: failed last with `{_exc!r}`.")
+                raise _exc
+            log.info(f"{fn.__name__}: completed.")
+
+        return _wrapper
+
+
+class aretry(retry):
+    """Retry the provided awaitable function when the listed exception(s) is
+    raised. If the allowed number of attempts is reached and the function still
+    didn't succeed, the latest exception is raised on last resort.
+
+
+    :param exception: The exception for which execution of the callable can be
+                       tried again.
+    :type exception: ~typing.Type[Exception]
+
+    :param attempts: The amount of times execution of the function should be
+                     tried. When set to ``None``, the function is tried
+                     indefinitely.
+    :type attempts: ~typing.Optional[int]
+
+    """
+
+    def __call__(self, fn: AsyncCallable) -> AsyncCallable:
+        """Wrap the decorated awaitable function to be retried.
+
+
+        :param fn: The awaitable function to be retried.
+        :type fn: ~none.typeset.AsyncCallable
+
+
+        :returns: The given callable, wrapped to be retried as requested.
+        :rtype: ~none.typeset.AsyncCallable
+
+        """
+
+        @functools.wraps(fn)
+        async def _wrapper(*args, **kwargs):
+            _exc = None
+            for i in self._loop:
+                log.info(f"{fn.__name__}: attempt {i}.")
+                _exc = None
+                try:
+                    return await fn(*args, **kwargs)
+                except self.exception as e:
+                    log.debug(f"{fn.__name__}: raised `{e!r}`.", exc_info=True)
+                    log.info(f"{fn.__name__}: retry on `{e!r}`.")
+                    _exc = e
+            if _exc:
+                log.error(f"{fn.__name__}: failed last with `{_exc!r}`.")
+                raise _exc
+            log.info(f"{fn.__name__}: completed.")
+
+        return _wrapper
