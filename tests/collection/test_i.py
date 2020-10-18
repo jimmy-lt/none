@@ -18,6 +18,7 @@
 # You should have received a copy of the MIT License along with
 # *none*. If not, see <http://opensource.org/licenses/MIT>.
 #
+import typing as ty
 import itertools
 
 from hypothesis import given, strategies as st
@@ -26,7 +27,7 @@ import none
 
 
 @given(iterable=st.iterables(st.integers()))
-def test_onexlast_list_expected(iterable):
+def test_onexlast_list_expected(iterable: ty.Iterator[int]):
     """At least one item from a given iterable should be returned except the
     last element.
 
@@ -40,7 +41,7 @@ def test_onexlast_list_expected(iterable):
 
 
 @given(iterable=st.iterables(st.integers()))
-def test_xlast_list_expected(iterable):
+def test_xlast_list_expected(iterable: ty.Iterator[int]):
     """All items from a given iterable should be returned except the last
     element.
 
