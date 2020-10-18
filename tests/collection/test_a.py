@@ -689,6 +689,19 @@ async def test_takewhile_matches_itertools_takewhile(
 
 @pytest.mark.asyncio
 @given(stop=st.integers(0, MAX_RANGE))
+async def test_xlast_list_expected(arange: ty.Type[ty.AsyncIterator[int]], stop: int):
+    """All items from a given iterable should be returned except the last
+    element.
+
+    """
+    target = list(range(stop))[:-1]
+    result = [x async for x in none.collection.a.xlast(arange(stop))]
+
+    assert result == target
+
+
+@pytest.mark.asyncio
+@given(stop=st.integers(0, MAX_RANGE))
 async def test_zip_matches_builtin_zip(arange: ty.Type[AsyncIterator], stop: int):
     """Ensure that our async zip implementation follows the standard
     implementation.

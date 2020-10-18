@@ -1,5 +1,5 @@
-# none/collection/__init__.py
-# ===========================
+# tests/collection/test_i.py
+# ==========================
 #
 # Copying
 # -------
@@ -18,5 +18,18 @@
 # You should have received a copy of the MIT License along with
 # *none*. If not, see <http://opensource.org/licenses/MIT>.
 #
-import none.collection.a
-import none.collection.i
+import itertools
+
+from hypothesis import given, strategies as st
+
+import none
+
+
+@given(iterable=st.iterables(st.integers()))
+def test_xlast_list_expected(iterable):
+    """All items from a given iterable should be returned except the last
+    element.
+
+    """
+    a, b = itertools.tee(iterable, 2)
+    assert list(none.collection.i.xlast(a)) == list(b)[:-1]

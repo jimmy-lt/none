@@ -652,6 +652,36 @@ class takewhile(AsyncIterator):
         raise StopAsyncIteration
 
 
+class xlast(AsyncIterator):
+    """Make an asynchronous iterator that returns all elements from the
+    asynchronous iterable except the last one.
+
+
+    :param iterable: An object which supports the asynchronous iteration
+                     protocol.
+    :type iterable: ~typing.AsyncIterator
+
+    """
+
+    __slots__ = ("_it", "_next")
+
+    def __init__(self, iterable: ty.AsyncIterator[T]):
+        """Constructor for :class:`none.collection.a.xlast`."""
+        self._it = iter(iterable)
+        self._next = missing
+
+    def __aiter__(self) -> "xlast":
+        """Return the iterator."""
+        return self
+
+    async def __anext__(self) -> T:
+        """Return the next value of this iterator."""
+        if self._next is missing:
+            self._next = await next(self._it)
+        current, self._next = self._next, await next(self._it)
+        return current
+
+
 class zip(AsyncIterator):
     """Make an asynchronous iterator that aggregates elements from each of the
     asynchronous iterables. The iterator stops when the shortest input iterable
