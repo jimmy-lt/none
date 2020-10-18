@@ -26,6 +26,20 @@ import none
 
 
 @given(iterable=st.iterables(st.integers()))
+def test_onexlast_list_expected(iterable):
+    """At least one item from a given iterable should be returned except the
+    last element.
+
+    """
+    a, b = itertools.tee(iterable, 2)
+    target = list(b)
+    if len(target) > 1:
+        assert list(none.collection.i.onexlast(a)) == target[:-1]
+    else:
+        assert list(none.collection.i.onexlast(a)) == target
+
+
+@given(iterable=st.iterables(st.integers()))
 def test_xlast_list_expected(iterable):
     """All items from a given iterable should be returned except the last
     element.

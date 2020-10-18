@@ -544,6 +544,24 @@ async def test_next_non_iterator_should_raise_typeerror():
 
 @pytest.mark.asyncio
 @given(stop=st.integers(0, MAX_RANGE))
+async def test_onexlast_list_expected(
+    arange: ty.Type[ty.AsyncIterator[int]], stop: int
+):
+    """At least one item from a given iterable should be returned except the
+    last element.
+
+    """
+    if stop > 1:
+        target = list(range(stop))[:-1]
+    else:
+        target = list(range(stop))
+    result = [x async for x in none.collection.a.onexlast(arange(stop))]
+
+    assert result == target
+
+
+@pytest.mark.asyncio
+@given(stop=st.integers(0, MAX_RANGE))
 async def test_repeat_awaitable_callable(stop):
     """Ensure that :class:`none.collection.a.repeat` can repeat the value
     returned by an awaitable callable.

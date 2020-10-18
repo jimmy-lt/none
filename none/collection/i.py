@@ -25,6 +25,35 @@ from collections.abc import Iterator
 from none.typeset import T, missing
 
 
+class onexlast(Iterator):
+    """Make an iterator that returns at least one element or all elements
+    except the last one from the provided iterable.
+
+
+    :param iterable: Iterable to get the elements from.
+    :type iterable: ~collections.abc.Iterable
+
+    """
+
+    __slots__ = ("_it", "_next")
+
+    def __init__(self, iterable: ty.Iterable[T]):
+        """Constructor for :class:`none.collection.i.onexlast`."""
+        self._it = iter(iterable)
+        self._next = missing
+
+    def __iter__(self) -> "onexlast":
+        """Return the iterator."""
+        return self
+
+    def __next__(self) -> T:
+        """Return the next value of this iterator."""
+        if self._next is missing:
+            self._next, self._it = next(self._it), xlast(self._it)
+            return self._next
+        return next(self._it)
+
+
 class xlast(Iterator):
     """Make an iterator that returns all elements from the provided iterable
     except the last one.
