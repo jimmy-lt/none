@@ -19,3 +19,4 @@
 # *none*. If not, see <http://opensource.org/licenses/MIT>.
 #
 import none.collection.a
+import none.collection.i

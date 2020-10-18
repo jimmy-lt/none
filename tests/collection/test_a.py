@@ -1,5 +1,5 @@
-# tests/collection/a.py
-# =====================
+# tests/collection/test_a.py
+# ==========================
 #
 # Copying
 # -------
@@ -36,7 +36,7 @@ MAX_RANGE = (2 ** 13) - 1
 
 
 @pytest.fixture
-def arange():
+def arange() -> ty.Type[ty.AsyncIterator[int]]:
     """Generate an asynchronous range iterator."""
 
     class AsyncRange(AsyncIterator):
@@ -64,7 +64,7 @@ def arange():
 
 
 @pytest.fixture
-def astarrange():
+def astarrange() -> ty.Type[ty.AsyncIterator[ty.Tuple[int, ...]]]:
     """Generate an asynchronous star range iterator."""
 
     class AsyncStarRange(AsyncIterator):
@@ -95,7 +95,7 @@ def astarrange():
 
 
 @pytest.fixture
-def starrange():
+def starrange() -> ty.Type[ty.Iterator[ty.Tuple[int, ...]]]:
     """Generate a synchronous star range iterator."""
 
     class StarRange(Iterator):
@@ -113,14 +113,14 @@ def starrange():
         def __iter__(self) -> "StarRange":
             return self
 
-        def __next__(self) -> ty.Type[int, ...]:
+        def __next__(self) -> ty.Tuple[int, ...]:
             return tuple([next(x) for x in self._it])
 
     return StarRange
 
 
 @pytest.fixture
-def noopiter():
+def noopiter() -> ty.Type[ty.AsyncIterator]:
     """Generate an asynchronous iterator which just raises
     ``StopAsyncIterator``.
 
@@ -139,7 +139,7 @@ def noopiter():
 
 
 @pytest.fixture
-def repeatfalse():
+def repeatfalse() -> ty.Type[ty.AsyncIterator[bool]]:
     """Generate an asynchronous iterator which repeats ``False`` for a specified
     amount of times.
 
@@ -165,7 +165,7 @@ def repeatfalse():
 
 
 @pytest.fixture
-def repeattrue():
+def repeattrue() -> ty.Type[ty.AsyncIterator[bool]]:
     """Generate an asynchronous iterator which repeats ``True`` for a specified
     amount of times.
 
@@ -192,21 +192,27 @@ def repeattrue():
 
 @pytest.mark.asyncio
 @given(stop=st.integers(0, MAX_RANGE))
-async def test_all_should_return_true(repeattrue: ty.Type[AsyncIterator], stop: int):
+async def test_all_should_return_true(
+    repeattrue: ty.Type[ty.AsyncIterator[bool]], stop: int
+):
     """An iterable with only true values should return ``True``."""
     assert await none.collection.a.all(repeattrue(stop)) is True
 
 
 @pytest.mark.asyncio
 @given(stop=st.integers(1, MAX_RANGE))
-async def test_all_should_return_false(repeatfalse: ty.Type[AsyncIterator], stop: int):
+async def test_all_should_return_false(
+    repeatfalse: ty.Type[ty.AsyncIterator[bool]], stop: int
+):
     """An iterable with only false values should return ``False``."""
     assert await none.collection.a.all(repeatfalse(stop)) is False
 
 
 @pytest.mark.asyncio
 @given(stop=st.integers(1, MAX_RANGE))
-async def test_all_mixed_should_return_false(arange: ty.Type[AsyncIterator], stop: int):
+async def test_all_mixed_should_return_false(
+    arange: ty.Type[ty.AsyncIterator[int]], stop: int
+):
     """An iterable mixed with false and true values should return ``False``."""
     assert await none.collection.a.all(arange(stop)) is False
 
@@ -214,21 +220,27 @@ async def test_all_mixed_should_return_false(arange: ty.Type[AsyncIterator], sto
 # Empty list will return ``False`` so start from ``1``.
 @pytest.mark.asyncio
 @given(stop=st.integers(1, MAX_RANGE))
-async def test_any_should_return_true(repeattrue: ty.Type[AsyncIterator], stop: int):
+async def test_any_should_return_true(
+    repeattrue: ty.Type[ty.AsyncIterator[bool]], stop: int
+):
     """An iterable with only true values should return ``True``."""
     assert await none.collection.a.any(repeattrue(stop)) is True
 
 
 @pytest.mark.asyncio
 @given(stop=st.integers(0, MAX_RANGE))
-async def test_any_should_return_false(repeatfalse: ty.Type[AsyncIterator], stop: int):
+async def test_any_should_return_false(
+    repeatfalse: ty.Type[ty.AsyncIterator[bool]], stop: int
+):
     """An iterable with only false values should return ``False``."""
     assert await none.collection.a.any(repeatfalse(stop)) is False
 
 
 @pytest.mark.asyncio
 @given(stop=st.integers(2, MAX_RANGE))
-async def test_any_mixed_should_return_true(arange: ty.Type[AsyncIterator], stop: int):
+async def test_any_mixed_should_return_true(
+    arange: ty.Type[ty.AsyncIterator[int]], stop: int
+):
     """An iterable mixed with false and true values should return ``True``."""
     assert await none.collection.a.any(arange(stop)) is True
 
@@ -236,7 +248,7 @@ async def test_any_mixed_should_return_true(arange: ty.Type[AsyncIterator], stop
 @pytest.mark.asyncio
 @given(stop=st.integers(0, MAX_RANGE))
 async def test_dropwhile_matches_itertools_dropwhile(
-    arange: ty.Type[AsyncIterator], stop: int
+    arange: ty.Type[ty.AsyncIterator[int]], stop: int
 ):
     """Ensure that our async dropwhile implementation follows the standard
     implementation.
@@ -254,7 +266,9 @@ async def test_dropwhile_matches_itertools_dropwhile(
 
 @pytest.mark.asyncio
 @given(stop=st.integers(0, MAX_RANGE))
-async def test_enumerate_expected_result(arange: ty.Type[AsyncIterator], stop: int):
+async def test_enumerate_expected_result(
+    arange: ty.Type[ty.AsyncIterator[int]], stop: int
+):
     """Look for expected results which should returned by
     :class:`none.collection.a.enumerate`.
 
@@ -266,7 +280,7 @@ async def test_enumerate_expected_result(arange: ty.Type[AsyncIterator], stop: i
 @pytest.mark.asyncio
 @given(stop=st.integers(0, MAX_RANGE))
 async def test_enumerate_matches_builtin_enumerate(
-    arange: ty.Type[AsyncIterator], stop: int
+    arange: ty.Type[ty.AsyncIterator[int]], stop: int
 ):
     """Ensure that our async enumerate implementation follows the standard
     implementation.
@@ -280,7 +294,9 @@ async def test_enumerate_matches_builtin_enumerate(
 
 @pytest.mark.asyncio
 @given(stop=st.integers(0, MAX_RANGE))
-async def test_filter_matches_builtin_filter(arange: ty.Type[AsyncIterator], stop: int):
+async def test_filter_matches_builtin_filter(
+    arange: ty.Type[ty.AsyncIterator[int]], stop: int
+):
     """Ensure that our async filter implementation follows the standard
     implementation.
 
@@ -298,7 +314,7 @@ async def test_filter_matches_builtin_filter(arange: ty.Type[AsyncIterator], sto
 @pytest.mark.asyncio
 @given(stop=st.integers(0, MAX_RANGE))
 async def test_filterfalse_matches_itertools_filterfalse(
-    arange: ty.Type[AsyncIterator], stop: int
+    arange: ty.Type[ty.AsyncIterator[int]], stop: int
 ):
     """Ensure that our async filterfalse implementation follows the standard
     implementation.
@@ -321,7 +337,7 @@ async def test_filterfalse_matches_itertools_filterfalse(
     step=st.integers(0, MAX_RANGE),
 )
 async def test_islice_matches_itertools_islice(
-    arange: ty.Type[AsyncIterator], start: int, stop: int, step: int
+    arange: ty.Type[ty.AsyncIterator[int]], start: int, stop: int, step: int
 ):
     """Ensure that our async islice implementation follows the standard
     implementation.
@@ -340,7 +356,7 @@ async def test_islice_matches_itertools_islice(
 
 @pytest.mark.parametrize("start,stop,step", [(1, 1, 0), (1, -1, 1), (-1, 1, 1)])
 def test_islice_should_raise_valueerror_on_negative_indicies(
-    noopiter, start: int, stop: int, step: int
+    noopiter: ty.Type[ty.AsyncIterator], start: int, stop: int, step: int
 ):
     """Giving negative indices to :class:`none.collection.a.islice` should raise
     a ``ValueError`` exception.
@@ -352,7 +368,7 @@ def test_islice_should_raise_valueerror_on_negative_indicies(
 
 @given(start=st.integers(0, MAX_RANGE), stop=st.integers(0, MAX_RANGE))
 def test_islice_start_higher_than_stop_should_raise_valueerror_on_negative_indicies(
-    noopiter, start: int, stop: int
+    noopiter: ty.Type[ty.AsyncIterator], start: int, stop: int
 ):
     """Providing a ``start`` value higher than ``stop`` should raise a
     ``ValueError``.
@@ -407,7 +423,7 @@ async def test_iter_with_callable_matches_builtin_iter(stop: int):
 
 @pytest.mark.asyncio
 @given(stop=st.integers(0, MAX_RANGE))
-async def test_map_expected_result(arange: ty.Type[AsyncIterator], stop: int):
+async def test_map_expected_result(arange: ty.Type[ty.AsyncIterator[int]], stop: int):
     """Look for expected results which should returned by
     :class:`none.collection.a.map`.
 
@@ -422,7 +438,7 @@ async def test_map_expected_result(arange: ty.Type[AsyncIterator], stop: int):
         assert x == i
 
 
-def test_map_non_callable_should_raise_typeerror(noopiter):
+def test_map_non_callable_should_raise_typeerror(noopiter: ty.Type[ty.AsyncIterator]):
     """Providing a non-callable object should raise a ``TypeError``."""
     with pytest.raises(TypeError):
         none.collection.a.map(None, noopiter())
@@ -430,7 +446,9 @@ def test_map_non_callable_should_raise_typeerror(noopiter):
 
 @pytest.mark.asyncio
 @given(stop=st.integers(0, MAX_RANGE))
-async def test_map_matches_builtin_map(arange: ty.Type[AsyncIterator], stop: int):
+async def test_map_matches_builtin_map(
+    arange: ty.Type[ty.AsyncIterator[int]], stop: int
+):
     """Ensure that our async map implementation follows the standard
     implementation.
 
@@ -448,7 +466,7 @@ async def test_map_matches_builtin_map(arange: ty.Type[AsyncIterator], stop: int
 @pytest.mark.asyncio
 @given(stop=st.integers(0, MAX_RANGE))
 async def test_map_two_iterables_expected_result(
-    arange: ty.Type[AsyncIterator], stop: int
+    arange: ty.Type[ty.AsyncIterator[int]], stop: int
 ):
     """Look for expected results which should returned by
     :class:`none.collection.a.map` with two iterables given.
@@ -467,7 +485,7 @@ async def test_map_two_iterables_expected_result(
 @pytest.mark.asyncio
 @given(stop=st.integers(0, MAX_RANGE))
 async def test_map_matches_builtin_map_with_two_iterables(
-    arange: ty.Type[AsyncIterator], stop: int
+    arange: ty.Type[ty.AsyncIterator[int]], stop: int
 ):
     """Ensure that our async map implementation follows the standard
     implementation with two iterables.
@@ -486,7 +504,7 @@ async def test_map_matches_builtin_map_with_two_iterables(
 @pytest.mark.asyncio
 @given(stop=st.integers(0, MAX_RANGE))
 async def test_map_next_should_provide_expected_value(
-    arange: ty.Type[AsyncIterator], stop: int
+    arange: ty.Type[ty.AsyncIterator[int]], stop: int
 ):
     """Look for expected results which should returned by
     :class:`none.collection.a.enumerate`.
@@ -502,7 +520,9 @@ async def test_map_next_should_provide_expected_value(
 
 
 @pytest.mark.asyncio
-async def test_map_exhausted_should_raise_stopasynciteration(noopiter):
+async def test_map_exhausted_should_raise_stopasynciteration(
+    noopiter: ty.Type[ty.AsyncIterator],
+):
     """Reaching iterator exhaustion should raise a ``StopAsyncIteration``
     exception.
 
@@ -516,7 +536,9 @@ async def test_map_exhausted_should_raise_stopasynciteration(noopiter):
 
 
 @pytest.mark.asyncio
-async def test_next_exhausted_should_raise_stopasynciteration(noopiter):
+async def test_next_exhausted_should_raise_stopasynciteration(
+    noopiter: ty.Type[ty.AsyncIterator],
+):
     """Reaching iterator exhaustion should raise a ``StopAsyncIteration``
     exception.
 
@@ -527,7 +549,9 @@ async def test_next_exhausted_should_raise_stopasynciteration(noopiter):
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("default", [object(), None])
-async def test_next_exhausted_should_return_default(noopiter, default):
+async def test_next_exhausted_should_return_default(
+    noopiter: ty.Type[ty.AsyncIterator], default
+):
     """Reaching iterator exhaustion should return the default value when
     provided.
 
@@ -544,7 +568,25 @@ async def test_next_non_iterator_should_raise_typeerror():
 
 @pytest.mark.asyncio
 @given(stop=st.integers(0, MAX_RANGE))
-async def test_repeat_awaitable_callable(stop):
+async def test_onexlast_list_expected(
+    arange: ty.Type[ty.AsyncIterator[int]], stop: int
+):
+    """At least one item from a given iterable should be returned except the
+    last element.
+
+    """
+    if stop > 1:
+        target = list(range(stop))[:-1]
+    else:
+        target = list(range(stop))
+    result = [x async for x in none.collection.a.onexlast(arange(stop))]
+
+    assert result == target
+
+
+@pytest.mark.asyncio
+@given(stop=st.integers(0, MAX_RANGE))
+async def test_repeat_awaitable_callable(stop: int):
     """Ensure that :class:`none.collection.a.repeat` can repeat the value
     returned by an awaitable callable.
 
@@ -561,7 +603,9 @@ async def test_repeat_awaitable_callable(stop):
 
 @pytest.mark.asyncio
 @given(stop=st.integers(1, MAX_RANGE))
-async def test_starmap_expected_result(astarrange: ty.Type[AsyncIterator], stop: int):
+async def test_starmap_expected_result(
+    astarrange: ty.Type[ty.AsyncIterator[ty.Tuple[int, ...]]], stop: int
+):
     """Look for expected results which should returned by
     :class:`none.collection.a.starmap`.
 
@@ -576,7 +620,9 @@ async def test_starmap_expected_result(astarrange: ty.Type[AsyncIterator], stop:
         assert x == i
 
 
-def test_starmap_non_callable_should_raise_typeerror(noopiter):
+def test_starmap_non_callable_should_raise_typeerror(
+    noopiter: ty.Type[ty.AsyncIterator],
+):
     """Providing a non-callable object should raise a ``TypeError``."""
     with pytest.raises(TypeError):
         none.collection.a.starmap(None, noopiter())
@@ -585,7 +631,9 @@ def test_starmap_non_callable_should_raise_typeerror(noopiter):
 @pytest.mark.asyncio
 @given(stop=st.integers(0, MAX_RANGE))
 async def test_starmap_matches_builtin_starmap(
-    astarrange: ty.Type[AsyncIterator], starrange: ty.Type[Iterator], stop: int
+    astarrange: ty.Type[ty.AsyncIterator[ty.Tuple[int, ...]]],
+    starrange: ty.Type[ty.Iterator[ty.Tuple[int, ...]]],
+    stop: int,
 ):
     """Ensure that our async starmap implementation follows the standard
     implementation.
@@ -604,7 +652,7 @@ async def test_starmap_matches_builtin_starmap(
 @pytest.mark.asyncio
 @given(stop=st.integers(0, MAX_RANGE))
 async def test_startmap_two_elements_iterable_expected_result(
-    astarrange: ty.Type[AsyncIterator], stop: int
+    astarrange: ty.Type[ty.AsyncIterator[ty.Tuple[int, ...]]], stop: int
 ):
     """Look for expected results which should returned by
     :class:`none.collection.a.start` with a two elements iterable given.
@@ -623,7 +671,9 @@ async def test_startmap_two_elements_iterable_expected_result(
 @pytest.mark.asyncio
 @given(stop=st.integers(0, MAX_RANGE))
 async def test_starmap_matches_itertools_starmap_with_two_elements_iterable(
-    astarrange: ty.Type[AsyncIterator], starrange: ty.Type[Iterator], stop: int
+    astarrange: ty.Type[ty.AsyncIterator[ty.Tuple[int, ...]]],
+    starrange: ty.Type[ty.Iterator[ty.Tuple[int, ...]]],
+    stop: int,
 ):
     """Ensure that our async starmap implementation follows the standard
     implementation with two elements.
@@ -642,7 +692,9 @@ async def test_starmap_matches_itertools_starmap_with_two_elements_iterable(
 
 
 @pytest.mark.asyncio
-async def test_starmap_exhausted_should_raise_stopasynciteration(noopiter):
+async def test_starmap_exhausted_should_raise_stopasynciteration(
+    noopiter: ty.Type[ty.AsyncIterator],
+):
     """Reaching iterator exhaustion should raise a ``StopAsyncIteration``
     exception.
 
@@ -657,7 +709,9 @@ async def test_starmap_exhausted_should_raise_stopasynciteration(noopiter):
 
 @pytest.mark.asyncio
 @given(stop=st.integers(1, MAX_RANGE))
-async def test_sum_matches_builtin_sum(arange: ty.Type[AsyncIterator], stop: int):
+async def test_sum_matches_builtin_sum(
+    arange: ty.Type[ty.AsyncIterator[int]], stop: int
+):
     """Ensure that our async sum implementation follows the standard
     implementation.
 
@@ -671,7 +725,7 @@ async def test_sum_matches_builtin_sum(arange: ty.Type[AsyncIterator], stop: int
 @pytest.mark.asyncio
 @given(stop=st.integers(0, MAX_RANGE))
 async def test_takewhile_matches_itertools_takewhile(
-    arange: ty.Type[AsyncIterator], stop: int
+    arange: ty.Type[ty.AsyncIterator[int]], stop: int
 ):
     """Ensure that our async takewhile implementation follows the standard
     implementation.
@@ -689,7 +743,22 @@ async def test_takewhile_matches_itertools_takewhile(
 
 @pytest.mark.asyncio
 @given(stop=st.integers(0, MAX_RANGE))
-async def test_zip_matches_builtin_zip(arange: ty.Type[AsyncIterator], stop: int):
+async def test_xlast_list_expected(arange: ty.Type[ty.AsyncIterator[int]], stop: int):
+    """All items from a given iterable should be returned except the last
+    element.
+
+    """
+    target = list(range(stop))[:-1]
+    result = [x async for x in none.collection.a.xlast(arange(stop))]
+
+    assert result == target
+
+
+@pytest.mark.asyncio
+@given(stop=st.integers(0, MAX_RANGE))
+async def test_zip_matches_builtin_zip(
+    arange: ty.Type[ty.AsyncIterator[int]], stop: int
+):
     """Ensure that our async zip implementation follows the standard
     implementation.
 
@@ -705,7 +774,7 @@ async def test_zip_matches_builtin_zip(arange: ty.Type[AsyncIterator], stop: int
 @pytest.mark.asyncio
 @given(stop=st.integers(0, MAX_RANGE))
 async def test_zip_longest_matches_itertools_zip_longest(
-    arange: ty.Type[AsyncIterator], stop: int
+    arange: ty.Type[ty.AsyncIterator[int]], stop: int
 ):
     """Ensure that our async zip_longest implementation follows the standard
     implementation.
