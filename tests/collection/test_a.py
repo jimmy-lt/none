@@ -1,5 +1,5 @@
-# tests/collection/a.py
-# =====================
+# tests/collection/test_a.py
+# ==========================
 #
 # Copying
 # -------
