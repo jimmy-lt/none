@@ -1,5 +1,5 @@
-# none/__init__.py
-# ================
+# tests/conftest.py
+# =================
 #
 # Copying
 # -------
@@ -18,9 +18,13 @@
 # You should have received a copy of the MIT License along with
 # *none*. If not, see <http://opensource.org/licenses/MIT>.
 #
-import none.url
-import none.hash
-import none.task
-import none.text
-import none.callable
-import none.collection
+import typing as ty
+
+import pytest
+import pkg_resources
+
+
+@pytest.fixture(params=pkg_resources.resource_listdir("tests.lib", "data"))
+def lib_data(request) -> ty.Tuple[str, ty.BinaryIO]:
+    name = f"data/{request.param}"
+    return name, pkg_resources.resource_stream("tests.lib", name)

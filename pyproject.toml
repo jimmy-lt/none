@@ -25,7 +25,7 @@ build-backend = "poetry.masonry.api"
 
 [tool.isort]
 py_version = "36"
-known_third_party = ["hypothesis", "pytest", "rfc3986"]
+known_third_party = ["hypothesis", "pkg_resources", "pytest", "rfc3986"]
 atomic = true
 combine_as_imports = true
 combine_star = true
@@ -85,3 +85,4 @@ pytest = "*"
 pytest-xdist = "*"
 coverage = "^5.2.1"
 pytest-asyncio = "*"
+setuptools = {version = "*", extras = ["tests"]}
