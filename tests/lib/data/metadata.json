@@ -1,0 +1,14 @@
+{
+    "files": {
+        "data/rand2kb.bin": {},
+        "data/rand8kb.bin": {},
+        "data/rand64kb.bin": {},
+        "data/rand128kb.bin": {},
+        "data/rand256kb.bin": {},
+        "data/zero2kb.bin": {},
+        "data/zero8kb.bin": {},
+        "data/zero64kb.bin": {},
+        "data/zero128kb.bin": {},
+        "data/zero256kb.bin": {}
+    }
+}
