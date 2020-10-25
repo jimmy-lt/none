@@ -1,0 +1,394 @@
+{
+    "files": {
+        "data/rand2kb.bin": {
+            "checksum": {
+                "merkle": "$sha256$cbb678ebbf92ca3442c4c7ff7747755a24ce03ebc338cbc265a5a7b87319abd6"
+            },
+            "chunks": [
+                [
+                    0,
+                    2048,
+                    "$sha256$dca9d28004ac2e1c81596230eca5a5ae073f9acf46c614263caf2b460ca84b68"
+                ]
+            ]
+        },
+        "data/rand8kb.bin": {
+            "checksum": {
+                "merkle": "$sha256$df31eafbb016e0013dbdb48a568953d1527887daa558be3a883613f0e4b38ea9"
+            },
+            "chunks": [
+                [
+                    0,
+                    6441,
+                    "$sha256$46a527e1d1f4f59696f9dda45e1605601359457f0bdbae823ab5da7fe77bc502"
+                ],
+                [
+                    6441,
+                    8192,
+                    "$sha256$56cc1f0693abba0bd08c50c96ef58e3b28df744a017ced0adbc3d503bd873115"
+                ]
+            ]
+        },
+        "data/rand64kb.bin": {
+            "checksum": {
+                "merkle": "$sha256$e31ee4c1aa7fc7dbe502e00b8120ef419608f07807a5ba52ca732eeace546087"
+            },
+            "chunks": [
+                [
+                    0,
+                    2501,
+                    "$sha256$a751cd692f0f67b3c95aa932aa4adf5dd72be863a1c2a93d566e10fb7d7406a0"
+                ],
+                [
+                    2501,
+                    11560,
+                    "$sha256$0725d2c8e23a0887925a9fca69698b6b8f597b521ffc0e766d43319258eb731d"
+                ],
+                [
+                    11560,
+                    15550,
+                    "$sha256$d9a5822e4a8b5c9aa061161c5514b12b74b9f3f4afd166677c733a878d0bef82"
+                ],
+                [
+                    15550,
+                    21300,
+                    "$sha256$16f115f82d5d2e210ae3d8e4fb3ff924a58fdf76d081170ad56eb0ed10ce9f8a"
+                ],
+                [
+                    21300,
+                    26833,
+                    "$sha256$1382a31f2648517f63a6e4378a9a720cfd537dd18eef6d1dc1898f1404d6eb6f"
+                ],
+                [
+                    26833,
+                    30556,
+                    "$sha256$c2800219192fcc9711616a6b2bf22f54766c5ddbb1fcc73752d73e7d4f8f3492"
+                ],
+                [
+                    30556,
+                    41039,
+                    "$sha256$f0c1b5121a9675b10656c45c5e3be46f8e8c887a44d5c0f4f2c1de44a1e63ec1"
+                ],
+                [
+                    41039,
+                    49825,
+                    "$sha256$25edb7a73c67479b7d5937be13ee14de2f5637b0fa63b308dd14b12b726951c8"
+                ],
+                [
+                    49825,
+                    63451,
+                    "$sha256$01cabd1504a6d42d75610f755c907f7a15aaaefc6818357ff3d96c2e4a355fdf"
+                ],
+                [
+                    63451,
+                    65536,
+                    "$sha256$f8281cfdf21efec0be21985cc2ddd10a1ed0cf84d66780853ecce89388848e41"
+                ]
+            ]
+        },
+        "data/rand128kb.bin": {
+            "checksum": {
+                "merkle": "$sha256$64350828c9c3ef7125d0672e1c2074f7638c63bf9a0ab7296a3b1f20d9156647"
+            },
+            "chunks": [
+                [
+                    0,
+                    8287,
+                    "$sha256$29a804664e1771d509f1caddceee6d77a584a67f2fe4a8cd69cca8e136995928"
+                ],
+                [
+                    8287,
+                    16254,
+                    "$sha256$dac33dc895204e8fbd1074e57d0c17e59bc3c26cd115b63d8b340763904073ac"
+                ],
+                [
+                    16254,
+                    23124,
+                    "$sha256$59e4fe3b355fd4472be19dda75858258cb2273d6e8f37a22295237e2fe8d6f7b"
+                ],
+                [
+                    23124,
+                    32542,
+                    "$sha256$f37dc5a04b89903104930de3c610358ea899ecece8e42dc9c099cb5866f54f72"
+                ],
+                [
+                    32542,
+                    41488,
+                    "$sha256$2cfa8084fe560c80cc522c3235b1bffc7d86335f734a44630aacb2b281debc92"
+                ],
+                [
+                    41488,
+                    56420,
+                    "$sha256$59e312bfe73a432f1524ba48873df0c9b299ced12427765f6d16ea211690647f"
+                ],
+                [
+                    56420,
+                    65725,
+                    "$sha256$67eaf525bb5291adc696617193cf8b4c74d64065d3d9b3b6af99747acd9768fd"
+                ],
+                [
+                    65725,
+                    74000,
+                    "$sha256$fc5f392e272c139bc7cd5254012d43972e0786dc086c86a6fac61664a44af3f0"
+                ],
+                [
+                    74000,
+                    76906,
+                    "$sha256$99961588eb984fec9142d2076bdf9998b6fc7f9fb185006d02e282b2e6a76e42"
+                ],
+                [
+                    76906,
+                    84890,
+                    "$sha256$0e66b7c6bbdceaa6a1652728b2397250f871b4544fc81cfdc38af793120300c1"
+                ],
+                [
+                    84890,
+                    92843,
+                    "$sha256$684a7d0396327e752eb1d9281008574555df6b47209d5dbf70a89924c99b3580"
+                ],
+                [
+                    92843,
+                    103418,
+                    "$sha256$ce964b7c389a81996c5d8e8f17c511bfdbb337fe4d27741053d65f79235a763e"
+                ],
+                [
+                    103418,
+                    111784,
+                    "$sha256$6ab810d9d76327865afd23353c7d5f93aef7384366196a5b94107faaef07b15d"
+                ],
+                [
+                    111784,
+                    116881,
+                    "$sha256$c5aa7be0b2d5cde1040c4ca3d829aa76331489c2ae8e42f6bc385da965ed83c5"
+                ],
+                [
+                    116881,
+                    131072,
+                    "$sha256$9d5e6a37c37ab972e6846321c015bbec2880e112315b22297e36620c473ca3bc"
+                ]
+            ]
+        },
+        "data/rand256kb.bin": {
+            "checksum": {
+                "merkle": "$sha256$410f419749996b08c925a63fcc6f2d80a28f08735c1d0e1d799ad4095a6bfa8e"
+            },
+            "chunks": [
+                [
+                    0,
+                    2229,
+                    "$sha256$57d0d79a4429dc65e984899960464811860482e7e739253a9248249984908a5a"
+                ],
+                [
+                    2229,
+                    20592,
+                    "$sha256$7b2018a2e6f67682b6b70b6d585b6a8ca887fc4b87e3dc80dfc106f4c92f19cb"
+                ],
+                [
+                    20592,
+                    29398,
+                    "$sha256$8ff963bec3a891176c7e6c6fa284128c136ca9b52cd20e2481199c197816b8f2"
+                ],
+                [
+                    29398,
+                    37605,
+                    "$sha256$71d95a979c69b34e5b9a5b34239e3c27c4cf4a883a083f4cb669a01d95f8fc63"
+                ],
+                [
+                    37605,
+                    46323,
+                    "$sha256$cea1ba516244e3881650604c04d4526e80dbd2b8b7ec5261ac817a223d82617a"
+                ],
+                [
+                    46323,
+                    55529,
+                    "$sha256$772bb4b537e25833eb3fc3813c191ffaefb6da75cf438f4fd7f5ae9c110635a5"
+                ],
+                [
+                    55529,
+                    64211,
+                    "$sha256$ffb7d9cbcfdd42fb4ff84dc0f1a1d15da24d71c70f65c6e6d3ea53bc85d684f5"
+                ],
+                [
+                    64211,
+                    73391,
+                    "$sha256$5f45c523844fb9b3749a015d513733c9654e5d221abdf53dea85ecbe4ff1d5ca"
+                ],
+                [
+                    73391,
+                    84713,
+                    "$sha256$f4ba8af46433eb56cfabb02955cdddaa3a87aca4dd4d9e4363a0d2d9e23b51b3"
+                ],
+                [
+                    84713,
+                    96462,
+                    "$sha256$948938d5d9fb971b7006f7b0ab67e2372f09387f322c56c656062ef2e42f3554"
+                ],
+                [
+                    96462,
+                    109647,
+                    "$sha256$13a816b9f8418fbd2a772aacd25b38cce6c58fbc3a52b17525489f42fe8b671c"
+                ],
+                [
+                    109647,
+                    118312,
+                    "$sha256$608e4d0a80eb0caea4f4f355f3ad63b4aff27ac5233655d5841f1738c5b24860"
+                ],
+                [
+                    118312,
+                    126547,
+                    "$sha256$ca749190f86a0f69808854f87acd024ab7855dd756c5628362844d40c27187fc"
+                ],
+                [
+                    126547,
+                    137219,
+                    "$sha256$eeb32ef2862688a55c86811398b68cb5019e8b72f0b50b126027d5256b8b4949"
+                ],
+                [
+                    137219,
+                    140571,
+                    "$sha256$3f606c971c45341ab819ba334828ff16b495952b8e692c61e9f088ecddb92118"
+                ],
+                [
+                    140571,
+                    150975,
+                    "$sha256$00bc44dafe13d1c6d961dfdc991602bbbe8a4c9adfee60cb66dca779009ef802"
+                ],
+                [
+                    150975,
+                    160504,
+                    "$sha256$5575fded126a78e7b2ea6a593b8abded9e36a7406dc75a0de8a391a77fa8f510"
+                ],
+                [
+                    160504,
+                    174921,
+                    "$sha256$31881600878d6217a81f5793ba74f7e9e07413c37ae14319cfefef86ba51fe10"
+                ],
+                [
+                    174921,
+                    185976,
+                    "$sha256$8ac163e63bc373dfb94b6837c2506977313a29acbc0703c9828b1797ff36ee81"
+                ],
+                [
+                    185976,
+                    195936,
+                    "$sha256$757ce4ff28959f6c98ba582dbd26600bc116f740239c55f9258918ba51d129bf"
+                ],
+                [
+                    195936,
+                    204575,
+                    "$sha256$ca90344fbecc57d7e118bfc05a040197e1823633cf3a05bf470294dc3b7f8307"
+                ],
+                [
+                    204575,
+                    213519,
+                    "$sha256$164f8ca32e401e7d02f299a67ffbcb364062acc7cc4a40cfb3a7b4888aa284c3"
+                ],
+                [
+                    213519,
+                    216957,
+                    "$sha256$d4cf33112d908ce5fe3545dea60b4db44048d44b072de297007db5e7119cd670"
+                ],
+                [
+                    216957,
+                    231478,
+                    "$sha256$f405132edfe1e4391964f8b4215a11fa59e742c6bfd85a007cb4f95bb3399f05"
+                ],
+                [
+                    231478,
+                    240030,
+                    "$sha256$13409ac0a91f0a13d85842a0ac77a219148d2b6a240e9e601e22bc20e497848e"
+                ],
+                [
+                    240030,
+                    248281,
+                    "$sha256$c3eebf10e3f9c0259648f2850db185cd473d04ea4907311050b9ef59b8384fd3"
+                ],
+                [
+                    248281,
+                    262144,
+                    "$sha256$4e68c9d0a56d1f58daca590fb26da8be92b0563b1d5eab10a3123c6f67b5e296"
+                ]
+            ]
+        },
+        "data/zero2kb.bin": {
+            "checksum": {
+                "merkle": "$sha256$5373c2d1dc4c5333681ef9fccfe13fcb842c4779960359570e994a864145c2d2"
+            },
+            "chunks": [
+                [
+                    0,
+                    2048,
+                    "$sha256$e5a00aa9991ac8a5ee3109844d84a55583bd20572ad3ffcd42792f3c36b183ad"
+                ]
+            ]
+        },
+        "data/zero8kb.bin": {
+            "checksum": {
+                "merkle": "$sha256$b1fb0079828ab653919011a9f8cfdd3704387eb08e1dc971155b33c03e0da1ef"
+            },
+            "chunks": [
+                [
+                    0,
+                    8192,
+                    "$sha256$9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47"
+                ]
+            ]
+        },
+        "data/zero64kb.bin": {
+            "checksum": {
+                "merkle": "$sha256$3266304f31be278d06c3bd3eb9aa3e00c59bedec0a890de466568b0b90b0e01f"
+            },
+            "chunks": [
+                [
+                    0,
+                    65536,
+                    "$sha256$de2f256064a0af797747c2b97505dc0b9f3df0de4f489eac731c23ae9ca9cc31"
+                ]
+            ]
+        },
+        "data/zero128kb.bin": {
+            "checksum": {
+                "merkle": "$sha256$1f3e47490a7d805550cb89ec2820578d5694205fa095cfc6a81150fb21926017"
+            },
+            "chunks": [
+                [
+                    0,
+                    65536,
+                    "$sha256$de2f256064a0af797747c2b97505dc0b9f3df0de4f489eac731c23ae9ca9cc31"
+                ],
+                [
+                    65536,
+                    131072,
+                    "$sha256$de2f256064a0af797747c2b97505dc0b9f3df0de4f489eac731c23ae9ca9cc31"
+                ]
+            ]
+        },
+        "data/zero256kb.bin": {
+            "checksum": {
+                "merkle": "$sha256$bce4830919c9f80b91ae0e11afa3568ed1c3343317f57f3e50a802e7be437709"
+            },
+            "chunks": [
+                [
+                    0,
+                    65536,
+                    "$sha256$de2f256064a0af797747c2b97505dc0b9f3df0de4f489eac731c23ae9ca9cc31"
+                ],
+                [
+                    65536,
+                    131072,
+                    "$sha256$de2f256064a0af797747c2b97505dc0b9f3df0de4f489eac731c23ae9ca9cc31"
+                ],
+                [
+                    131072,
+                    196608,
+                    "$sha256$de2f256064a0af797747c2b97505dc0b9f3df0de4f489eac731c23ae9ca9cc31"
+                ],
+                [
+                    196608,
+                    262144,
+                    "$sha256$de2f256064a0af797747c2b97505dc0b9f3df0de4f489eac731c23ae9ca9cc31"
+                ]
+            ]
+        }
+    }
+}

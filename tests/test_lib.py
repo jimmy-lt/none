@@ -1,5 +1,5 @@
-# none/hash/__init__.py
-# =====================
+# tests/test_lib.py
+# =================
 #
 # Copying
 # -------
@@ -18,5 +18,14 @@
 # You should have received a copy of the MIT License along with
 # *none*. If not, see <http://opensource.org/licenses/MIT>.
 #
-import none.hash.cdc
-import none.hash.tree
+import hashlib
+
+
+def test_data_checksum(lib_data_metadata, lib_data):
+    """Make sure that the content of our test data did not change."""
+    name, fp = lib_data
+    for h_name, h_value in lib_data_metadata["files"][name]["checksum"].items():
+        hash = hashlib.new(h_name)
+        hash.update(fp.read())
+
+        assert f"${hash.name}${hash.hexdigest()}" == h_value

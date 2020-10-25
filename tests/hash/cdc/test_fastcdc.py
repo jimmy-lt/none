@@ -164,12 +164,10 @@ def test_split_expected_result_with_seed(meta, lib_data, gear_table, gear_seed):
     assert theirs == ours
 
 
-def test_fastcdc_aggregate_chunk_hashes(meta, lib_data, gear_table):
+def test_fastcdc_aggregate_chunk_hashes(lib_data_metadata, lib_data, gear_table):
     """The aggregated hash of all chunks should match the hash of the file."""
     name, fp = lib_data
-    for h_name in meta["files"][name]["checksum"]:
-        ours = meta["files"][name]["checksum"][h_name]
-
+    for h_name, ours in lib_data_metadata["files"][name]["checksum"].items():
         h = hashlib.new(h_name)
         for _, _, chunk in none.hash.cdc.fastcdc.fastcdc(fp, ghash_table=gear_table):
             h.update(chunk)
@@ -179,16 +177,14 @@ def test_fastcdc_aggregate_chunk_hashes(meta, lib_data, gear_table):
 
 
 def test_fastcdc_aggregate_chunk_hashes_with_seed(
-    meta, lib_data, gear_table, gear_seed
+    lib_data_metadata, lib_data, gear_table, gear_seed
 ):
     """The aggregated hash of all chunks should match the hash of the file with
     seed.
 
     """
     name, fp = lib_data
-    for h_name in meta["files"][name]["checksum"]:
-        ours = meta["files"][name]["checksum"][h_name]
-
+    for h_name, ours in lib_data_metadata["files"][name]["checksum"].items():
         h = hashlib.new(h_name)
         for _, _, chunk in none.hash.cdc.fastcdc.fastcdc(
             fp, ghash_table=gear_table, seed=gear_seed

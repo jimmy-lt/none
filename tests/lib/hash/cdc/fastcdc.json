@@ -262,9 +262,6 @@
     },
     "files": {
         "data/rand2kb.bin": {
-            "checksum": {
-                "sha256": "$sha256$dca9d28004ac2e1c81596230eca5a5ae073f9acf46c614263caf2b460ca84b68"
-            },
             "chunks": [
                 [
                     0,
@@ -281,9 +278,6 @@
             ]
         },
         "data/rand8kb.bin": {
-            "checksum": {
-                "sha256": "$sha256$dd6f4e2b8e4ce06d4502326f627b7e0ee88cee48e70def44dfa448aed6476b92"
-            },
             "chunks": [
                 [
                     0,
@@ -305,9 +299,6 @@
             ]
         },
         "data/rand64kb.bin": {
-            "checksum": {
-                "sha256": "$sha256$4fff97b954a0dcc270b3cbf7a10c95eae0a13b264302f32e24c90ffc394718fe"
-            },
             "chunks": [
                 [
                     0,
@@ -389,9 +380,6 @@
             ]
         },
         "data/rand128kb.bin": {
-            "checksum": {
-                "sha256": "$sha256$9a0bdbf867c0dd436300484469564d3f0dde0bb1270f28a16f2e0400576041ac"
-            },
             "chunks": [
                 [
                     0,
@@ -558,9 +546,6 @@
             ]
         },
         "data/rand256kb.bin": {
-            "checksum": {
-                "sha256": "$sha256$b9cc850d3d6cd2e9cc1d804912983547454e655b551be50a6668a7072327836f"
-            },
             "chunks": [
                 [
                     0,
@@ -832,9 +817,6 @@
             ]
         },
         "data/zero2kb.bin": {
-            "checksum": {
-                "sha256": "$sha256$e5a00aa9991ac8a5ee3109844d84a55583bd20572ad3ffcd42792f3c36b183ad"
-            },
             "chunks": [
                 [
                     0,
@@ -851,9 +833,6 @@
             ]
         },
         "data/zero8kb.bin": {
-            "checksum": {
-                "sha256": "$sha256$9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47"
-            },
             "chunks": [
                 [
                     0,
@@ -870,9 +849,6 @@
             ]
         },
         "data/zero64kb.bin": {
-            "checksum": {
-                "sha256": "$sha256$de2f256064a0af797747c2b97505dc0b9f3df0de4f489eac731c23ae9ca9cc31"
-            },
             "chunks": [
                 [
                     0,
@@ -889,9 +865,6 @@
             ]
         },
         "data/zero128kb.bin": {
-            "checksum": {
-                "sha256": "$sha256$fa43239bcee7b97ca62f007cc68487560a39e19f74f3dde7486db3f98df8e471"
-            },
             "chunks": [
                 [
                     0,
@@ -918,9 +891,6 @@
             ]
         },
         "data/zero256kb.bin": {
-            "checksum": {
-                "sha256": "$sha256$8a39d2abd3999ab73c34db2476849cddf303ce389b35826850f9a700589b4a90"
-            },
             "chunks": [
                 [
                     0,

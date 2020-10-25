@@ -1,5 +1,5 @@
-.. api/none.rst
-.. ============
+.. api/none.hash.rst
+.. =================
 ..
 .. Copying
 .. -------
@@ -18,21 +18,16 @@
 .. You should have received a copy of the MIT License along with
 .. *none*. If not, see <http://opensource.org/licenses/MIT>.
 
-none
-====
+none.hash
+=========
 
-.. automodule:: none
+.. automodule:: none.hash
 
 
-Subpackages
------------
+Submodules
+----------
 
-.. toctree::
-  :maxdepth: 2
+none.hash.tree
+^^^^^^^^^^^^^^
 
-  none.callable
-  none.collection
-  none.hash
-  none.task
-  none.text
-  none.url
+.. automodule:: none.hash.tree
