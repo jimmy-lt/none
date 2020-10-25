@@ -19,3 +19,4 @@
 # *none*. If not, see <http://opensource.org/licenses/MIT>.
 #
 import none.hash.cdc
+import none.hash.tree
