@@ -64,13 +64,13 @@ def test_mkgear_generate_64_integers():
 
 def test_ghash_expected_result(gear_table, gear_seed):
     """Test the gear hash function for expected results."""
-    our_h = 0
-    them_h = 0
+    ours = 0
+    theirs = 0
     for c in bytes(range(GHASH_TABLE_N_ELEMENTS)):
-        our_h = ((our_h << 1) + gear_table[c]) & 0xFFFFFFFFFFFFFFFF
-        them_h = none.hash.cdc.fastcdc.ghash(them_h, c, ghash_table=gear_table)
+        ours = ((ours << 1) + gear_table[c]) & 0xFFFFFFFFFFFFFFFF
+        theirs = none.hash.cdc.fastcdc.ghash(theirs, c, ghash_table=gear_table)
 
-        assert them_h == our_h
+        assert theirs == ours
 
 
 def test_ghash_expected_result_with_seed(gear_table, gear_seed):

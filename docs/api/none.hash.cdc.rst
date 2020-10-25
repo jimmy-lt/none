@@ -1,5 +1,5 @@
-.. api/none.hash.rst
-.. =================
+.. api/none.hash.cdc.rst
+.. =====================
 ..
 .. Copying
 .. -------
@@ -18,24 +18,13 @@
 .. You should have received a copy of the MIT License along with
 .. *none*. If not, see <http://opensource.org/licenses/MIT>.
 
-none.hash
-=========
-
-.. automodule:: none.hash
-
-Subpackages
------------
-
-.. toctree::
-  :maxdepth: 2
-
-  none.hash.cdc
-
+none.hash.cdc
+=============
 
 Submodules
 ----------
 
-none.hash.tree
-^^^^^^^^^^^^^^
+none.hash.cdc.fastcdc
+^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: none.hash.tree
+.. automodule:: none.hash.cdc.fastcdc
