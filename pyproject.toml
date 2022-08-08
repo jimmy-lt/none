@@ -40,12 +40,12 @@ use_parentheses = true
 
 [tool.poetry]
 name = "none"
-version = "0.1.0-alpha.2"
+version = "0.1.0"
 authors = ["See AUTHORS.rst <dev@none.local>"]
 maintainers = [
     "Jimmy Thrasibule <dev@jimmy.lt>",
 ]
-description = "An extensive library providing additional facitilities to the Python Standard Library."
+description = "An extensive library providing additional facilities to the Python Standard Library."
 license = "MIT"
 readme = "README.rst"
 repository = "https://github.com/spack971/none"
@@ -60,7 +60,7 @@ classifiers = [
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
     "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: Utilities",
