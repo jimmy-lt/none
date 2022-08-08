@@ -40,8 +40,8 @@ use_parentheses = true
 
 [tool.poetry]
 name = "none"
-version = "0.1.0"
-authors = ["See AUTHORS.rst <dev@none.local>"]
+version = "0.1.1"
+authors = ["See AUTHORS.rst <dev@jimmy.lt>"]
 maintainers = [
     "Jimmy Thrasibule <dev@jimmy.lt>",
 ]
