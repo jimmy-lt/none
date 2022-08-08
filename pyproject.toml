@@ -73,8 +73,8 @@ include = [
 
 [tool.poetry.dependencies]
 python = "^3.7"
-sphinx = {version = "^3.2", extras = ["docs"]}
-rfc3986 = {version = "^1.4", extras = ["url"]}
+sphinx = {version = "^5.1.0", extras = ["docs"]}
+rfc3986 = {version = "^2.0.0", extras = ["url"]}
 
 [tool.poetry.dev-dependencies]
 hypothesis = "*"
@@ -82,6 +82,6 @@ pre-commit = "*"
 pyre-check = "*"
 pytest = "*"
 pytest-xdist = "*"
-coverage = "^5.2.1"
+coverage = "*"
 pytest-asyncio = "*"
 setuptools = {version = "*", extras = ["tests"]}
